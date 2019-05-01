@@ -376,6 +376,9 @@ class PaulEmploi(object):
         # During dev, we might redo the "actualisation" thing
         if "Vous avez déjà déclaré votre situation pour cette période" in docstr:
             forms = doc.cssselect('form[action*=actualisation]')
+            if len(forms) == 0:
+                raise ValueError("Actualisation déjà effectuée et non-modifiable")
+
             assert len(forms) == 1, "Several forms for re-actualisation"
             form = forms[0]
 
