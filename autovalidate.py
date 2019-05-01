@@ -516,7 +516,7 @@ class PaulEmploi(object):
 
 
 
-def dostuff(user, password, postcode):
+def dostuff(dest, user, password, postcode):
     pe = PaulEmploi(user, password, postcode)
 
     situation = pe.situationsUtilisateur
@@ -537,7 +537,7 @@ def dostuff(user, password, postcode):
     jsondump = json.dumps(situation, indent=8).encode("utf-8")
     att = [("situation.json", jsondump), ("declaration.pdf", pdf)]
 
-    sendmail(gmailaccount, "Actualisation", msg, att)
+    sendmail(dest, "Actualisation", msg, att)
 
 
 
@@ -546,8 +546,8 @@ def main():
     logfmt = "%(asctime)s %(levelname)s: %(message)s"
     logging.basicConfig(format=logfmt, level=logging.INFO)
 
-    if len(sys.argv) != 6:
-        print("usage: %s gmailaccount gmailpassword userid password postcode" % sys.argv[0])
+    if len(sys.argv) != 7:
+        print("usage: %s gmailaccount gmailpassword destinationmail userid password postcode" % sys.argv[0])
         return
 
     global gmailaccount, gmailpassword
