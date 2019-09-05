@@ -140,14 +140,14 @@ def buildAuthorizeUrl(peam):
 
 
 class PaulEmploi(object):
-    def __init__(self, user, password, postcode):
+    def __init__(self, user, password):
         self._session = requests.Session()
         self._session.headers.update({'User-Agent': 'Mozzarella/5.0'})
         self._peam = None
         self._rest = None
         self._access_token = None
         self._situation = None
-        self._login(user, password, postcode)
+        self._login(user, password)
 
 
 
@@ -195,39 +195,6 @@ class PaulEmploi(object):
 
 
 
-    def _touchtodigit(self, url, doc):
-        # doc should be the lxml.html document read from the URL returned by _authorizeUrl
-        # url is the urllib tuple of the doc
-
-        scripts = doc.cssselect('script:not([src])')
-        scripts = [s for s in scripts if "urlArgs" in s.text]
-        if len(scripts) != 1:
-            raise ValueError("Only one script should be found with urlArgs")
-
-        script = scripts[0]
-
-        match = re.search(r'urlArgs\s*:\s*"([^"]*)"', script.text, re.MULTILINE)
-        urlArgs = match.group(1)
-
-        # Download pe-connect.css
-        path = url.path + "css/pe-connect.css"
-        peconnecturl = urllib.parse.urlunsplit((url.scheme, url.netloc, path, urlArgs, None))
-        res = self._session.get(peconnecturl)
-        res.raise_for_status()
-        peconnectcss = res.text
-
-        # Extract the .toucheA -> 1 ... matching and build the inverse table
-        touchtodigit = {}
-        matches = re.findall(r'\.touche(.)\b[^{]*{([^}]+)}', peconnectcss)
-        for t, img in matches:
-            match = re.search(r'\d+', img)
-            digit = match.group(0)
-            touchtodigit[t] = digit
-
-        return touchtodigit
-
-
-
     def _cookiedesc_tokenid(self, url):
         realm = self._realm_override(url)
         pathjson = self._pathjson(url)
@@ -251,7 +218,7 @@ class PaulEmploi(object):
 
 
 
-    def _authenticate(self, url, touchtodigit, user, password, postcode):
+    def _authenticate(self, url, user, password):
         realm = self._realm_override(url)
         pathjson = self._pathjson(url)
 
@@ -277,15 +244,7 @@ class PaulEmploi(object):
         res.raise_for_status()
         form = res.json()
 
-        padlookup = {}
-        for i, t in enumerate(form['callbacks'][2]['output'][1]['value']):
-            padlookup[touchtodigit[t[-1]]] = "val_cel_" + str(i)
-
-
-        # Send password and postal code
-        cellcode = "".join(padlookup[d] for d in password)
-        form['callbacks'][3]['input'][0]['value'] = cellcode
-        form['callbacks'][4]['input'][0]['value'] = postcode
+        form['callbacks'][1]['input'][0]['value'] = password
 
         res = self._session.post(authurl, data=json.dumps(form), headers=headers)
         res.raise_for_status()
@@ -293,14 +252,12 @@ class PaulEmploi(object):
 
 
 
-    def _login(self, user, password, postcode):
+    def _login(self, user, password):
         authorizeurl = self._authorizeUrl()
         res = self._session.get(authorizeurl)
         res.raise_for_status()
 
-        doc = lxml.html.fromstring(res.text, base_url=res.url)
         url = urllib.parse.urlparse(res.url)
-        touchtodigit = self._touchtodigit(url, doc)
 
         # The real realm that override all the realms!
         qs = urllib.parse.parse_qs(url.fragment)
@@ -314,7 +271,7 @@ class PaulEmploi(object):
         cookiedesc = self._cookiedesc_tokenid(url)
 
         # Authenticate
-        res = self._authenticate(url, touchtodigit, user, password, postcode)
+        res = self._authenticate(url, user, password)
         successurl = res['successUrl']
 
         # Set the tokenId cookie
@@ -519,8 +476,8 @@ class PaulEmploi(object):
 
 
 
-def dostuff(dest, user, password, postcode):
-    pe = PaulEmploi(user, password, postcode)
+def dostuff(dest, user, password):
+    pe = PaulEmploi(user, password)
 
     situation = pe.situationsUtilisateur
     indemnisation = situation['indemnisation']
@@ -549,8 +506,8 @@ def main():
     logfmt = "%(asctime)s %(levelname)s: %(message)s"
     logging.basicConfig(format=logfmt, level=logging.INFO)
 
-    if len(sys.argv) != 7:
-        print("usage: %s gmailaccount gmailpassword destinationmail userid password postcode" % sys.argv[0])
+    if len(sys.argv) != 6:
+        print("usage: %s gmailaccount gmailpassword destinationmail username password" % sys.argv[0])
         return
 
     global gmailaccount, gmailpassword
