@@ -410,7 +410,7 @@ class PaulEmploi(object):
         form = forms[0]
 
         questions = {
-            'travailleBloc': "Avez-vous travaillé ?",
+            'travailleBloc': "Avez-vous travaillé ou exercé une activité non salariée ?",
             'stageBloc': "Avez-vous été en stage ?",
             'maladieBloc': "Avez-vous été en arrêt maladie ?",
             'materniteBloc': "Avez-vous été en congé maternité ?",
