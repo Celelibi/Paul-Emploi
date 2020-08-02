@@ -181,7 +181,18 @@ class PaulEmploi(object):
     def _realm_override(url):
         # TODO: cache the result?
         qs = urllib.parse.parse_qs(url.fragment)
+        if 'realm' not in qs:
+            qs = urllib.parse.parse_qs(url.query)
         realm = qs['realm'][-1]
+        return realm
+
+
+
+    @staticmethod
+    def _realm_path(realm):
+        if realm[0] == "/":
+            realm = "/root" + realm
+        realm = realm.replace("/", "/realms/")
         return realm
 
 
@@ -220,10 +231,11 @@ class PaulEmploi(object):
 
     def _authenticate(self, url, user, password):
         realm = self._realm_override(url)
+        realmpath = self._realm_path(realm)
         pathjson = self._pathjson(url)
 
-        path = pathjson + "/authenticate"
-        params = dict(urllib.parse.parse_qsl(url.fragment))
+        path = pathjson + realmpath + "/authenticate"
+        params = dict(urllib.parse.parse_qsl(url.query))
         params['realm'] = realm # override realm even if we know it's actually the same
         params = urllib.parse.urlencode(params, quote_via=urllib.parse.quote)
         authurl = urllib.parse.urlunsplit((url.scheme, url.netloc, path, params, None))
