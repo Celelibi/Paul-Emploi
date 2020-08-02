@@ -259,10 +259,6 @@ class PaulEmploi(object):
 
         url = urllib.parse.urlparse(res.url)
 
-        # The real realm that override all the realms!
-        qs = urllib.parse.parse_qs(url.fragment)
-        realm = qs['realm'][-1]
-
         # Build the path for XHR queries
         pathcontext = "/".join(url.path.rstrip('/').split("/")[:-1])
         pathjson = pathcontext + "/json"
