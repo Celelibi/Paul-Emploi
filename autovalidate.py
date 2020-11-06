@@ -473,7 +473,7 @@ def dostuff(dest, user, password):
 def main():
     locale.setlocale(locale.LC_ALL, '')
     logfmt = "%(asctime)s %(levelname)s: %(message)s"
-    logging.basicConfig(format=logfmt, level=logging.INFO)
+    logging.basicConfig(format=logfmt, level=logging.WARNING)
 
     parser = argparse.ArgumentParser(description="Bot d'actualisation pour Paul Emploi")
     parser.add_argument("cfgfile", metavar="configfile", help="Fichier de configuration")
