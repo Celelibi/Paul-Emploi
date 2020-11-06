@@ -478,11 +478,18 @@ def main():
     parser = argparse.ArgumentParser(description="Bot d'actualisation pour Paul Emploi")
     parser.add_argument("cfgfile", metavar="configfile", help="Fichier de configuration")
     parser.add_argument("--user", "-u", metavar="PEusername", help="Compte Pôle Emploi configuré à utiliser")
+    parser.add_argument("--verbose", "-v", action="count", help="Augmente le niveau de verbosité")
 
     args = parser.parse_args()
 
     configpath = args.cfgfile
     peuser = args.user
+    verbose = args.verbose
+
+    if verbose is not None:
+        loglevels = ["WARNING", "INFO", "DEBUG", "NOTSET"]
+        verbose = min(len(loglevels), verbose) - 1
+        logging.getLogger().setLevel(loglevels[verbose])
 
     config = configparser.ConfigParser()
     config.read(configpath)
