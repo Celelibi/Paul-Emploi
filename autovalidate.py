@@ -491,6 +491,7 @@ def main():
         verbose = min(len(loglevels), verbose) - 1
         logging.getLogger().setLevel(loglevels[verbose])
 
+    logging.info("Reading config file %s", configpath)
     config = configparser.ConfigParser()
     config.read(configpath)
 
@@ -506,6 +507,7 @@ def main():
     else:
         section = "Account." + peuser
 
+    logging.info("Using account section %s", section)
     peuser = config[section]["username"]
     pepwd = config[section]["password"]
     emailaddr = config[section]["email"]
@@ -513,6 +515,7 @@ def main():
     try:
         dostuff(emailaddr, peuser, pepwd)
     except:
+        logging.exception("Top-level exception:")
         msg = "Exception caught while trying to run the \"actualisation\".\n\n"
         msg += traceback.format_exc()
         sendmail(smtpaccount, "Error", msg)
