@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import argparse
 import calendar
 import configparser
 import datetime
@@ -12,7 +13,6 @@ import mimetypes
 import random
 import re
 import smtplib
-import sys
 import traceback
 import urllib.parse
 
@@ -475,15 +475,17 @@ def main():
     logfmt = "%(asctime)s %(levelname)s: %(message)s"
     logging.basicConfig(format=logfmt, level=logging.INFO)
 
-    if len(sys.argv) != 3:
-        print("usage: %s configfile PEusername" % sys.argv[0])
-        return
+    parser = argparse.ArgumentParser(description="Bot d'actualisation pour Paul Emploi")
+    parser.add_argument("cfgfile", metavar="configfile", help="Fichier de configuration")
+    parser.add_argument("user", metavar="PEusername", help="Compte Pôle Emploi configuré à utiliser")
 
-    configfile = sys.argv[1]
-    peuser = sys.argv[2]
+    args = parser.parse_args()
+
+    configpath = args.cfgfile
+    peuser = args.user
 
     config = configparser.ConfigParser()
-    config.read(configfile)
+    config.read(configpath)
 
     global smtphost, smtpport, smtpaccount, smtppassword
     smtphost = config["SMTP"]["smtphost"]
