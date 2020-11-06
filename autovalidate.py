@@ -259,10 +259,6 @@ class PaulEmploi(object):
 
         url = urllib.parse.urlparse(res.url)
 
-        # Build the path for XHR queries
-        pathcontext = "/".join(url.path.rstrip('/').split("/")[:-1])
-        pathjson = pathcontext + "/json"
-
         # Keep the cookie description for later
         cookiedesc = self._cookiedesc_tokenid(url)
 
