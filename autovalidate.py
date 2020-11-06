@@ -48,44 +48,6 @@ def sendmail(to, subj, msg, attachments=[]):
 
 
 
-class MySession(requests.Session):
-    def _common(self, req):
-        req = self.prepare_request(req)
-
-        print("%s %s" % (req.method, req.url))
-        for header in req.headers.items():
-            print("%s: %s" % header)
-
-        print("")
-
-        res = self.send(req)
-
-        def print_response(res):
-            print("%s %s" % (res.status_code, res.reason))
-            for h in res.headers.items():
-                print("%s: %s" % h)
-
-            print("")
-
-        for h in res.history:
-            print_response(h)
-        print_response(res)
-        return res
-
-    def get(self, *args, **kwargs):
-        req = requests.Request("GET", *args, **kwargs)
-        return self._common(req)
-
-    def post(self, *args, **kwargs):
-        req = requests.Request("POST", *args, **kwargs)
-        return self._common(req)
-
-    def request(self, method, *args, **kwargs):
-        req = requests.Request(method, *args, **kwargs)
-        return self._common(req)
-
-
-
 def extract_peam(script):
     match = re.search(r'peam:({(?:[^{}]*\{[^{}]*\})*})', script)
     peam = match.group(1)
