@@ -15,13 +15,14 @@ un compte gmail.
 L'utilisation prévue est de lancer le bot tous les mois avec une entrée cron
 telle que suit:
 
-    0 8 1 * * dir/to/autovalidate.py dir/to/autovalidate.ini cfgUser
+    0 8 1 * * dir/to/autovalidate.py dir/to/autovalidate.ini --user cfgUser
 
 Le premier argument est le chemin vers le fichier de configuration dont la
 syntaxe est détaillée plus loin.
 
 `cfgUser` est le nom du compte utilisateur défini dans la configuration pour
-qui il faut effectuer l'actualisation sur le site Pôle Emploi.
+qui il faut effectuer l'actualisation sur le site Pôle Emploi. S'il est omit,
+le premier compte définit dans le fichier de configuration sera utilisé.
 
 # Fichier de configuration
 

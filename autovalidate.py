@@ -477,7 +477,7 @@ def main():
 
     parser = argparse.ArgumentParser(description="Bot d'actualisation pour Paul Emploi")
     parser.add_argument("cfgfile", metavar="configfile", help="Fichier de configuration")
-    parser.add_argument("user", metavar="PEusername", help="Compte Pôle Emploi configuré à utiliser")
+    parser.add_argument("--user", "-u", metavar="PEusername", help="Compte Pôle Emploi configuré à utiliser")
 
     args = parser.parse_args()
 
@@ -493,7 +493,12 @@ def main():
     smtpaccount = config["SMTP"]["smtpuser"]
     smtppassword = config["SMTP"]["smtppwd"]
 
-    section = "Account." + peuser
+
+    if peuser is None:
+        section = next(s for s in config.sections() if s.startswith("Account."))
+    else:
+        section = "Account." + peuser
+
     peuser = config[section]["username"]
     pepwd = config[section]["password"]
     emailaddr = config[section]["email"]
