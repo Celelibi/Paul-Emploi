@@ -344,7 +344,6 @@ class PaulEmploi(object):
 
         fieldsets = form.cssselect('fieldset')
         assert len(fieldsets) == 1
-        fieldset = fieldsets[0]
 
         values = dict(form.fields)
         values['formation'] = "NON"
