@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import calendar
+import configparser
 import datetime
 import email.message
 import email.policy
@@ -20,8 +21,11 @@ import requests
 
 
 
-gmailaccount = None
-gmailpassword = None
+smtphost = None
+smtpport = None
+smtpaccount = None
+smtppassword = None
+
 
 
 def sendmail(to, subj, msg, attachments=[]):
@@ -29,7 +33,7 @@ def sendmail(to, subj, msg, attachments=[]):
     policy = email.policy.EmailPolicy(raise_on_defect=True, linesep="\r\n", utf8=True)
     mail = email.message.EmailMessage(policy=policy)
     mail['Subject'] = "[BOT Paul Emploi] %s" % subj
-    mail['From'] = "%s <%s>" % ("Auto-actualisation", gmailaccount)
+    mail['From'] = "%s <%s>" % ("Auto-actualisation", smtpaccount)
     mail['To'] = "Chômeur <%s>" % to
     mail.set_content(msg, disposition='inline')
 
@@ -41,8 +45,8 @@ def sendmail(to, subj, msg, attachments=[]):
         maintype, subtype = mime.split("/")
         mail.add_attachment(content, maintype=maintype, subtype=subtype, filename=name)
 
-    smtp = smtplib.SMTP_SSL("smtp.gmail.com")
-    smtp.login(gmailaccount, gmailpassword)
+    smtp = smtplib.SMTP_SSL(smtphost, port=smtpport)
+    smtp.login(smtpaccount, smtppassword)
     smtp.send_message(mail)
     smtp.quit()
 
@@ -471,20 +475,33 @@ def main():
     logfmt = "%(asctime)s %(levelname)s: %(message)s"
     logging.basicConfig(format=logfmt, level=logging.INFO)
 
-    if len(sys.argv) != 6:
-        print("usage: %s gmailaccount gmailpassword destinationmail username password" % sys.argv[0])
+    if len(sys.argv) != 3:
+        print("usage: %s configfile PEusername" % sys.argv[0])
         return
 
-    global gmailaccount, gmailpassword
-    gmailaccount = sys.argv[1]
-    gmailpassword = sys.argv[2]
+    configfile = sys.argv[1]
+    peuser = sys.argv[2]
+
+    config = configparser.ConfigParser()
+    config.read(configfile)
+
+    global smtphost, smtpport, smtpaccount, smtppassword
+    smtphost = config["SMTP"]["smtphost"]
+    smtpport = config["SMTP"].get("smtpport")
+    smtpaccount = config["SMTP"]["smtpuser"]
+    smtppassword = config["SMTP"]["smtppwd"]
+
+    section = "Account." + peuser
+    peuser = config[section]["username"]
+    pepwd = config[section]["password"]
+    emailaddr = config[section]["email"]
 
     try:
-        dostuff(*sys.argv[3:])
+        dostuff(emailaddr, peuser, pepwd)
     except:
         msg = "Exception caught while trying to run the \"actualisation\".\n\n"
         msg += traceback.format_exc()
-        sendmail(gmailaccount, "Error", msg)
+        sendmail(smtpaccount, "Error", msg)
 
 
 
