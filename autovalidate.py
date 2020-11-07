@@ -21,6 +21,28 @@ import requests
 
 
 
+questions = {
+    'travailleBloc': "Avez-vous travaillé ou exercé une activité non salariée ?",
+    'stageBloc': "Avez-vous été en stage ?",
+    'maladieBloc': "Avez-vous été en arrêt maladie ?",
+    'materniteBloc': "Avez-vous été en congé maternité ?",
+    'retraiteBloc': "Percevez-vous une nouvelle pension retraite ?",
+    'invaliditeBloc': "Percevez-vous une nouvelle pensiond'invalidité de 2ème ou 3ème catégorie ?",
+    'rechercheBloc': "Etes-vous toujours à la recherche d'un emploi ?"
+}
+
+default_answers = {
+    'travailleBloc': "NON",
+    'stageBloc': "NON",
+    'maladieBloc': "NON",
+    'materniteBloc': "NON",
+    'retraiteBloc': "NON",
+    'invaliditeBloc': "NON",
+    'rechercheBloc': "OUI"
+}
+
+
+
 smtphost = None
 smtpport = None
 smtpaccount = None
@@ -283,7 +305,7 @@ class PaulEmploi(object):
 
 
 
-    def actualisation(self):
+    def actualisation(self, answers):
         situation = self.situationsUtilisateur
 
         res = self._session.get(situation['actualisation']['service']['url'])
@@ -334,26 +356,6 @@ class PaulEmploi(object):
         forms = doc.cssselect('form[action*=actualisation]')
         assert len(forms) == 1, "Several forms for actualisation"
         form = forms[0]
-
-        questions = {
-            'travailleBloc': "Avez-vous travaillé ou exercé une activité non salariée ?",
-            'stageBloc': "Avez-vous été en stage ?",
-            'maladieBloc': "Avez-vous été en arrêt maladie ?",
-            'materniteBloc': "Avez-vous été en congé maternité ?",
-            'retraiteBloc': "Percevez-vous une nouvelle pension retraite ?",
-            'invaliditeBloc': "Percevez-vous une nouvelle pensiond'invalidité de 2ème ou 3ème catégorie ?",
-            'rechercheBloc': "Etes-vous toujours à la recherche d'un emploi ?"
-        }
-
-        answers = {
-            'travailleBloc': "NON",
-            'stageBloc': "NON",
-            'maladieBloc': "NON",
-            'materniteBloc': "NON",
-            'retraiteBloc': "NON",
-            'invaliditeBloc': "NON",
-            'rechercheBloc': "OUI"
-        }
 
         formvalues = dict(form.fields)
         blocs = form.cssselect('fieldset:not([id]) > div:not(.js-hide)')
@@ -445,13 +447,13 @@ class PaulEmploi(object):
 
 
 
-def dostuff(dest, user, password):
+def dostuff(dest, user, password, answers):
     pe = PaulEmploi(user, password)
 
     situation = pe.situationsUtilisateur
     indemnisation = situation['indemnisation']
     actualisation = situation['actualisation']
-    actumsg, pdf = pe.actualisation()
+    actumsg, pdf = pe.actualisation(answers)
 
     enddate = datetime.datetime.fromisoformat(indemnisation['dateDecheanceDroitAre'])
     indemndate = datetime.datetime.fromisoformat(actualisation['periodeCourante']['reference'])
@@ -512,8 +514,10 @@ def main():
     pepwd = config[section]["password"]
     emailaddr = config[section]["email"]
 
+    answers = default_answers.copy()
+
     try:
-        dostuff(emailaddr, peuser, pepwd)
+        dostuff(emailaddr, peuser, pepwd, answers)
     except:
         logging.exception("Top-level exception:")
         msg = "Exception caught while trying to run the \"actualisation\".\n\n"
