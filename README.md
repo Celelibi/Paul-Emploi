@@ -5,6 +5,12 @@ de Paul. Pour l'instant, il remplit le formulaire toujours de la même façon en
 répondant "Oui" à "Etes-vous toujours à la recherche d'un emploi ?" et "Non" à
 toutes les autres.
 
+/!\ Attention. Ce programme a été testé uniquement par des hommes. Le
+formulaire contient une question cachée concernant le congé maternité. Bien que
+le programme doive fonctionner correctement si cette question est affiché,
+cette situation n'a pas été testée. Si vous êtes une femme au chômage,
+contactez-moi.
+
 En cas de succès il envoie un mail à l'adresse indiquée avec un résumé de
 l'actualisation. En cas d'échec, il envoie un rapport d'erreur au compte mail
 utilisé pour l'envoi des mails. L'envoie de mails a été testé uniquement avec

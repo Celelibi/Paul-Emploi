@@ -358,7 +358,7 @@ class PaulEmploi(object):
         form = forms[0]
 
         formvalues = dict(form.fields)
-        blocs = form.cssselect('fieldset:not([id]) > div:not(.js-hide)')
+        blocs = form.cssselect("div:not(.hide) > fieldset:not([id]) > div:not(.js-hide)")
         for bloc in blocs:
             blocid = bloc.get('id')
 
