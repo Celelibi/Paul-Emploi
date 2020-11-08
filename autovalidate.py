@@ -23,6 +23,8 @@ import requests
 
 questions = {
     'travailleBloc': "Avez-vous travaillé ou exercé une activité non salariée ?",
+    'nbHeuresTravBloc': "Heures travaillées dans le mois",
+    'montSalaireBloc': "Montant total de votre ou vos salaires bruts réels ou estimés",
     'stageBloc': "Avez-vous été en stage ?",
     'maladieBloc': "Avez-vous été en arrêt maladie ?",
     'materniteBloc': "Avez-vous été en congé maternité ?",
@@ -491,16 +493,81 @@ class PaulEmploi(object):
 
 
 
-def dostuff(dest, user, password, answers):
+def make_answers(datestart, workfile=None):
+    answers = default_answers.copy()
+    if workfile is None:
+        logging.debug("No work file to parse")
+        return answers
+
+    datestart = datestart.date().replace(day=1)
+    _, daysinmonth = calendar.monthrange(datestart.year, datestart.month)
+    dateend = datestart + datetime.timedelta(days=daysinmonth)
+    logging.info("Looking for work entries between %s and %s", datestart, dateend)
+
+    parsere = re.compile(r'(\S+)\s+(\S+)\s+(\S+)')
+
+    totalhours = 0
+    totalrevenue = 0
+    logging.info("Reading workfile: %s", workfile)
+
+    with open(workfile) as fp:
+        for line in fp:
+            logging.debug("Reading workfile line: %r", line)
+            line = line.split("#", 1)[0].rstrip()
+            if not line:
+                logging.debug("Ignoring empty line")
+                continue
+
+            match = parsere.match(line)
+            if match is None:
+                raise ValueError("Ill-formatted line in workfile: %r" % line)
+
+            date = match.group(1)
+            hours = match.group(2)
+            rate = match.group(3)
+
+            date = datetime.datetime.strptime(date, "%Y-%m-%d").date()
+            if date < datestart or date >= dateend:
+                logging.debug("Date %s not in interval %s ... %s", date, datestart, dateend)
+                continue
+
+            hours = float(hours)
+            rate = float(rate)
+            revenue = hours * rate
+            logging.debug("Adding %f hours and %f€ to the count", hours, revenue)
+
+            totalhours += hours
+            totalrevenue += revenue
+            logging.debug("New total of %f hours and %f€", totalhours, totalrevenue)
+
+
+    totalhours = int(totalhours)
+    totalrevenue = int(totalrevenue)
+
+    if totalhours == 0 and totalrevenue == 0:
+        logging.debug("Work file show nothing for this month")
+        return answers
+
+    logging.info("Declaring %d hours for %d€", totalhours, totalrevenue)
+    answers["travailleBloc"] = "OUI"
+    answers["nbHeuresTravBloc"] = totalhours
+    answers["montSalaireBloc"] = totalrevenue
+
+    return answers
+
+
+
+def dostuff(dest, user, password, workfile=None):
     pe = PaulEmploi(user, password)
 
     situation = pe.situationsUtilisateur
     indemnisation = situation['indemnisation']
     actualisation = situation['actualisation']
-    actumsg, pdf = pe.actualisation(answers)
-
     enddate = datetime.datetime.fromisoformat(indemnisation['dateDecheanceDroitAre'])
     indemndate = datetime.datetime.fromisoformat(actualisation['periodeCourante']['reference'])
+    answers = make_answers(indemndate, workfile)
+    actumsg, pdf = pe.actualisation(answers)
+
     dailyindemn = float(indemnisation['indemnisationJournalierNet'])
     _, daysinmonth = calendar.monthrange(indemndate.year, indemndate.month)
     indemnestimate = dailyindemn * daysinmonth
@@ -524,6 +591,7 @@ def main():
     parser = argparse.ArgumentParser(description="Bot d'actualisation pour Paul Emploi")
     parser.add_argument("cfgfile", metavar="configfile", help="Fichier de configuration")
     parser.add_argument("--user", "-u", metavar="PEusername", help="Compte Pôle Emploi configuré à utiliser")
+    parser.add_argument("--work", "-w", metavar="worklog", help="Fichier des heures travaillées")
     parser.add_argument("--verbose", "-v", action="count", help="Augmente le niveau de verbosité")
 
     args = parser.parse_args()
@@ -531,6 +599,7 @@ def main():
     configpath = args.cfgfile
     peuser = args.user
     verbose = args.verbose
+    workfile = args.work
 
     if verbose is not None:
         loglevels = ["WARNING", "INFO", "DEBUG", "NOTSET"]
@@ -558,10 +627,8 @@ def main():
     pepwd = config[section]["password"]
     emailaddr = config[section]["email"]
 
-    answers = default_answers.copy()
-
     try:
-        dostuff(emailaddr, peuser, pepwd, answers)
+        dostuff(emailaddr, peuser, pepwd, workfile)
     except:
         logging.exception("Top-level exception:")
         msg = "Exception caught while trying to run the \"actualisation\".\n\n"

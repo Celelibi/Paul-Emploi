@@ -1,9 +1,10 @@
 # Bot d'actualisation de situation Pôle Emploi
 
 Ce programme rempli automatiquement le formulaire d'actualisation sur le site
-de Paul. Pour l'instant, il remplit le formulaire toujours de la même façon en
-répondant "Oui" à "Etes-vous toujours à la recherche d'un emploi ?" et "Non" à
-toutes les autres.
+de Paul. Par défaut, il remplit le formulaire en répondant *"Oui"* à
+*"Etes-vous toujours à la recherche d'un emploi ?"* et *"Non"* à toutes les
+autres. Cependant, avec l'option `--work`, des heures travaillées peuvent être
+déclarées.
 
 /!\ Attention. Ce programme a été testé uniquement par des hommes. Le
 formulaire contient une question cachée concernant le congé maternité. Bien que
@@ -29,6 +30,13 @@ syntaxe est détaillée plus loin.
 `cfgUser` est le nom du compte utilisateur défini dans la configuration pour
 qui il faut effectuer l'actualisation sur le site Pôle Emploi. S'il est omit,
 le premier compte définit dans le fichier de configuration sera utilisé.
+
+L'option `--work` peut être utilisée pour donner le chemin d'un fichier
+contenant l'historique des heures travaillées. Son format est détaillé plus
+loin. S'il est donné et qu'il indique que des heures ont été travaillées pour
+la période considérée, alors le script répondra "*Oui"* à la question
+*"Avez-vous travaillé ?"* et déclarera le nombre d'heures du mois ainsi que le
+chiffre d'affaire estimé.
 
 # Fichier de configuration
 
@@ -67,6 +75,48 @@ Le `PEusername` dans le nom de la section est modifiable. C'est le nom qui doit
   de connexion sur le site de Pôle Emploi tel que mis en place depuis l'été 2019.
 - `email` définit l'adresse mail où envoyer le résumé si l'actualisation
   réussit.
+
+# Work file
+
+Le *work file* liste les heures travaillées ou prévues. Seules les lignes
+concernant le mois en cours de déclaration seront utilisées. Plusieurs lignes
+peuvent concerner la même journée sans problème. Elles seront cumulées.
+
+## Format
+
+Voici un exemple de *work file*.
+```
+# Date heures THM
+2020-11-02 4 50 # Bad ass stunt
+2020-11-02 1 30
+
+2020-11-04 2 40 # Broke my leg like a boss
+```
+
+Le fichier peut contenir des commentaires, des lignes vides ou des lignes de
+données.  Les lignes de données sont constituées de 3 colonnes, date, heures et
+taux horaire. Ces 3 colonnes sont séparées par des caractères blancs (espaces
+ou tabulations).
+
+### Commentaires
+Tout ce qui se trouve après un symbole `#` est ignoré. Ceci peut être utilisé
+pour ajouter des commentaires dans le fichier.
+
+### Date
+La date est au format `YYYY-MM-DD`. Elle indique la date à laquelle le travail
+a été effectué. C'est cette colonne qui est utilisée pour déterminer quelles
+entrées doivent être utilisées pour déclarer les heures travaillées à Paul.
+Notez que la date exacte n'a pas d'importance, seuls le mois et l'année sont
+pris en compte.
+
+### Heures
+Le nombre d'heures travaillées ce jour là. Ce peut être un nombre à virgule. Il
+est multiplié par le taux-horaire pour estimer le chiffre d'affaire lié à cette
+entrée.
+
+### Taux horaire
+La rémunération horaire de cette entrée. Ce peut être un nombre à virgule. Elle
+est multipliée par le nombre d'heures pour obtenir le chiffre d'affaire.
 
 # Améliorations possibles
 
