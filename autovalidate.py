@@ -305,6 +305,71 @@ class PaulEmploi(object):
 
 
 
+    def _fill_block(self, bloc, answers):
+        blocid = bloc.get('id')
+        logging.debug("Filling block %s", blocid)
+
+        # Check that the question hasn't changed
+        qs = bloc.cssselect('.label > .list-title')
+        if len(qs) == 0:
+            qs = bloc.cssselect(".label > label")
+        assert len(qs) == 1, "Several questions for a block"
+        q = qs[0]
+        q = lxml.html.tostring(qs[0], method='text', encoding='unicode')
+        matches = re.match(r'^\s*(.*?)\s*(?:Aide\s*)?$', q, re.MULTILINE)
+        q = matches.group(1)
+        logging.debug("Answering question %r", q)
+
+        if blocid not in questions:
+            blocstr = lxml.html.tostring(bloc, encoding='unicode')
+            raise ValueError("Unknown question block: %s" % blocstr)
+
+        if questions[blocid] != q:
+            raise ValueError("Question changed for block '%s'. Expected %r found %r" % (blocid, questions[blocid], q))
+
+        inputs = bloc.cssselect("input")
+        inputnames = set(i.name for i in inputs)
+        if len(inputnames) == 0:
+            blocstr = lxml.html.tostring(bloc, encoding='unicode')
+            raise ValueError("No input in block '%s'\nPlease check the form yourself:\n%s" % (blocid, blocstr))
+
+        if len(inputnames) > 1:
+            blocstr = lxml.html.tostring(bloc, encoding='unicode')
+            raise ValueError("Several inputs for question %r\nPlease check the form yourself:\n%s" % (q, blocstr))
+
+        inputtype = inputs[0].type.lower()
+
+        if inputtype not in ("text", "radio"):
+            raise ValueError("Found an input with type %r. Those aren't supported yet." % inputtype)
+
+        if inputtype == "text":
+            return inputs[0].name, answers[blocid], None
+
+        # Check that our answer doesn't show a new question
+        inputs = bloc.cssselect('input[value=%s]' % answers[blocid])
+        if len(inputs) == 0:
+            inputs = bloc.cssselect('input')
+            values = [i.value for i in inputs]
+            blocstr = lxml.html.tostring(bloc, encoding='unicode')
+            raise ValueError("No input for question %r with value %r. Possible values are %r\nPlease check the form yourself:\n%s" % (q, answers[blocid], values, blocstr))
+
+        if len(inputs) > 1:
+            blocstr = lxml.html.tostring(bloc, encoding='unicode')
+            raise ValueError("Several inputs for question %r with value %r.\nPlease check the form yourself:\n%s" % (q, answers[blocid], blocstr))
+
+        input_ = inputs[0]
+        openid = None
+        if "js-open" in input_.classes:
+            inputid = input_.get('id')
+            if inputid.endswith("-open"):
+                openid = inputid[:-len("-open")]
+                logging.debug("Answering %r to question %r opens block %r.", answers[blocid], q, openid)
+
+        return input_.name, answers[blocid], openid
+
+
+
+
     def actualisation(self, answers):
         situation = self.situationsUtilisateur
 
@@ -358,44 +423,23 @@ class PaulEmploi(object):
         form = forms[0]
 
         formvalues = dict(form.fields)
-        blocs = form.cssselect("div:not(.hide) > fieldset:not([id]) > div:not(.js-hide)")
+        blocs = form.cssselect("div:not(.hide) > fieldset:not([id]) > div.form-line:not(.js-hide)")
         for bloc in blocs:
-            blocid = bloc.get('id')
+            name, value, showid = self._fill_block(bloc, answers)
+            formvalues[name] = value
 
-            # Check that the question hasn't changed
-            qs = bloc.cssselect('.label > .list-title')
-            assert len(qs) == 1, "Several questions for a block"
-            q = qs[0]
-            q = lxml.html.tostring(qs[0], method='text', encoding='unicode')
-            matches = re.match(r'^\s*(.*?)\s*(?:Aide\s*)?$', q, re.MULTILINE)
-            q = matches.group(1)
+            if showid is not None:
+                blocshow = form.cssselect("#" + showid)
+                if len(blocshow) == 0:
+                    raise ValueError("Block '%s' should be shown but doesn't exist" % showid)
 
-            if blocid not in questions:
-                blocstr = lxml.html.tostring(bloc, encoding='unicode')
-                raise ValueError("Unknown question block: %s" % blocstr)
-
-            if questions[blocid] != q:
-                raise ValueError("Question changed for block '%s'. Expected %r found %r" % (blocid, questions[blocid], q))
-
-
-            # Check that our answer doesn't show a new question
-            inputs = bloc.cssselect('input[value=%s]' % answers[blocid])
-            if len(inputs) == 0:
-                inputs = bloc.cssselect('input')
-                values = [i.value for i in inputs]
-                blocstr = lxml.html.tostring(bloc, encoding='unicode')
-                raise ValueError("No input for question %r with value %r. Possible values are %r\nPlease check the form yourself:\n%s" % (q, answers[blocid], values, blocstr))
-
-            if len(inputs) > 1:
-                blocstr = lxml.html.tostring(bloc, encoding='unicode')
-                raise ValueError("Several inputs for question %r with value %r.\nPlease check the form yourself:\n%s" % (q, answers[blocid], blocstr))
-
-            input_ = inputs[0]
-            if "js-open" in input_.classes:
-                # TODO if this is needed, parse the question tree
-                raise ValueError("Answering %r to question %r would open new questions. This case is not handled right now." % (answers[blocid], q))
-
-            formvalues[input_.name] = answers[blocid]
+                blocshow = blocshow[0]
+                newblocs = blocshow.cssselect("div.form-line")
+                for b in newblocs:
+                    name, value, n = self._fill_block(b, answers)
+                    formvalues[name] = value
+                    if n is not None:
+                        raise ValueError("Question block '%s' opened block '%s' which should open a second third level block '%r'. Only 2 levels supported right now." % (bloc.get("id"), showid, n))
 
         res = self._session.request(form.method, form.action, data=formvalues)
         res.raise_for_status()
