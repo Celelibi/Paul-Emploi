@@ -158,8 +158,7 @@ class PaulEmploiAuthedRequests(object):
 
     def _authorizeUrl(self):
         initialurl = "https://candidat.pole-emploi.fr/espacepersonnel/"
-        res = self._session.get(initialurl)
-        res.raise_for_status()
+        res = self.get(initialurl)
 
         doc = lxml.html.fromstring(res.text, base_url=res.url)
         doc.make_links_absolute()
@@ -172,8 +171,7 @@ class PaulEmploiAuthedRequests(object):
             raise ValueError("Several main.js scripts were found")
 
         mainscript = mainscripts[0].get('src')
-        res = self._session.get(mainscript)
-        res.raise_for_status()
+        res = self.get(mainscript)
 
         mainjs = res.text
         peam = extract_peam(mainjs)
@@ -220,8 +218,7 @@ class PaulEmploiAuthedRequests(object):
         params = urllib.parse.urlencode(params, quote_via=urllib.parse.quote)
         configurl = urllib.parse.urlunsplit((url.scheme, url.netloc, path, params, None))
 
-        res = self._session.get(configurl)
-        res.raise_for_status()
+        res = self.get(configurl)
         srvinfo = res.json()
 
         cookiedesc = {
@@ -252,28 +249,23 @@ class PaulEmploiAuthedRequests(object):
             "X-NoSession": "true",
             "Content-Type": "application/json",
         }
-        res = self._session.post(authurl, headers=headers)
-        res.raise_for_status()
+        res = self.post(authurl, headers=headers)
         form = res.json()
 
         form['callbacks'][0]['input'][0]['value'] = user
-        res = self._session.post(authurl, data=json.dumps(form), headers=headers)
-        res.raise_for_status()
+        res = self.post(authurl, data=json.dumps(form), headers=headers)
         form = res.json()
 
         form['callbacks'][1]['input'][0]['value'] = password
 
-        res = self._session.post(authurl, data=json.dumps(form), headers=headers)
-        res.raise_for_status()
+        res = self.post(authurl, data=json.dumps(form), headers=headers)
         return res.json()
 
 
 
     def _login(self, user, password):
         authorizeurl = self._authorizeUrl()
-        res = self._session.get(authorizeurl)
-        res.raise_for_status()
-
+        res = self.get(authorizeurl)
         url = urllib.parse.urlparse(res.url)
 
         # Keep the cookie description for later
@@ -294,8 +286,7 @@ class PaulEmploiAuthedRequests(object):
             cookie['domain'] = dom
             self._session.cookies.set(**cookie)
 
-        res = self._session.get(successurl)
-        res.raise_for_status()
+        res = self.get(successurl)
 
         # Set the access token
         url = urllib.parse.urlparse(res.url)
@@ -311,8 +302,7 @@ class PaulEmploiAuthedRequests(object):
             "Authorization": "Bearer " + self._access_token
         }
 
-        res = self._session.get(self._rest['ex002']['situationsUtilisateur'], headers=headers)
-        res.raise_for_status()
+        res = self.get(self._rest['ex002']['situationsUtilisateur'], headers=headers)
         return res.json()
 
 
