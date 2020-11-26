@@ -136,7 +136,6 @@ class PaulEmploiAuthedRequests(object):
         self._peam = None
         self._rest = None
         self._access_token = None
-        self._situation = None
         self._login(user, password)
 
 
@@ -300,11 +299,7 @@ class PaulEmploiAuthedRequests(object):
 
 
 
-    @property
-    def situationsUtilisateur(self):
-        if self._situation is not None:
-            return self._situation
-
+    def getSituationsUtilisateur(self):
         headers = {
             "Accept": "application/json, text/plain, */*",
             "pe-nom-application": "pn073-tdbcandidat",
@@ -313,20 +308,14 @@ class PaulEmploiAuthedRequests(object):
 
         res = self._session.get(self._rest['ex002']['situationsUtilisateur'], headers=headers)
         res.raise_for_status()
-        self._situation = res.json()
-        return self._situation
+        return res.json()
 
 
 
 class PaulEmploi(object):
     def __init__(self, user, password):
         self._req = PaulEmploiAuthedRequests(user, password)
-
-
-
-    @property
-    def situationsUtilisateur(self):
-        return self._req.situationsUtilisateur
+        self.situationsUtilisateur = self._req.getSituationsUtilisateur()
 
 
 
