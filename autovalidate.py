@@ -129,7 +129,7 @@ def buildAuthorizeUrl(peam):
 
 
 
-class PaulEmploi(object):
+class PaulEmploiAuthedRequests(object):
     def __init__(self, user, password):
         self._session = requests.Session()
         self._session.headers.update({'User-Agent': 'Mozzarella/5.0'})
@@ -138,6 +138,17 @@ class PaulEmploi(object):
         self._access_token = None
         self._situation = None
         self._login(user, password)
+
+
+
+    def request(self, method, url, *args, **kwargs):
+        return self._session.request(method, url, *args, **kwargs)
+
+    def get(self, url, *args, **kwargs):
+        return self._session.get(url, *args, **kwargs)
+
+    def post(self, url, *args, **kwargs):
+        return self._session.post(url, *args, **kwargs)
 
 
 
@@ -307,6 +318,18 @@ class PaulEmploi(object):
 
 
 
+class PaulEmploi(object):
+    def __init__(self, user, password):
+        self._req = PaulEmploiAuthedRequests(user, password)
+
+
+
+    @property
+    def situationsUtilisateur(self):
+        return self._req.situationsUtilisateur
+
+
+
     def _fill_block(self, bloc, answers):
         blocid = bloc.get('id')
         logging.debug("Filling block %s", blocid)
@@ -375,14 +398,14 @@ class PaulEmploi(object):
     def actualisation(self, answers):
         situation = self.situationsUtilisateur
 
-        res = self._session.get(situation['actualisation']['service']['url'])
+        res = self._req.get(situation['actualisation']['service']['url'])
         res.raise_for_status()
 
         doc = lxml.html.fromstring(res.text, base_url=res.url)
         doc.make_links_absolute()
 
         form = doc.cssselect('form')[0]
-        res = self._session.request(form.method, form.action, data=dict(form.fields))
+        res = self._req.request(form.method, form.action, data=dict(form.fields))
         res.raise_for_status()
 
         doc = lxml.html.fromstring(res.text, base_url=res.url)
@@ -399,7 +422,7 @@ class PaulEmploi(object):
             form = forms[0]
 
             values = dict(form.fields)
-            res = self._session.request(form.method, form.action, data=values)
+            res = self._req.request(form.method, form.action, data=values)
             res.raise_for_status()
             doc = lxml.html.fromstring(res.text, base_url=res.url)
             doc.make_links_absolute()
@@ -414,7 +437,7 @@ class PaulEmploi(object):
 
         values = dict(form.fields)
         values['formation'] = "NON"
-        res = self._session.request(form.method, form.action, data=values)
+        res = self._req.request(form.method, form.action, data=values)
         res.raise_for_status()
 
         doc = lxml.html.fromstring(res.text, base_url=res.url)
@@ -443,7 +466,7 @@ class PaulEmploi(object):
                     if n is not None:
                         raise ValueError("Question block '%s' opened block '%s' which should open a second third level block '%r'. Only 2 levels supported right now." % (bloc.get("id"), showid, n))
 
-        res = self._session.request(form.method, form.action, data=formvalues)
+        res = self._req.request(form.method, form.action, data=formvalues)
         res.raise_for_status()
 
         doc = lxml.html.fromstring(res.text, base_url=res.url)
@@ -465,7 +488,7 @@ class PaulEmploi(object):
         form = forms[0]
 
         values = dict(form.fields)
-        res = self._session.request(form.method, form.action, data=values)
+        res = self._req.request(form.method, form.action, data=values)
         res.raise_for_status()
 
         doc = lxml.html.fromstring(res.text, base_url=res.url)
@@ -475,7 +498,7 @@ class PaulEmploi(object):
         assert len(links) == 1, "Several links to last page"
         link = links[0]
 
-        res = self._session.get(link.get('href'))
+        res = self._req.get(link.get('href'))
         res.raise_for_status()
 
         doc = lxml.html.fromstring(res.text, base_url=res.url)
@@ -485,7 +508,7 @@ class PaulEmploi(object):
         assert len(pdflinks) == 1
         pdflink = pdflinks[0]
 
-        res = self._session.get(pdflink.get('href'))
+        res = self._req.get(pdflink.get('href'))
         res.raise_for_status()
         pdf = res.content
 
