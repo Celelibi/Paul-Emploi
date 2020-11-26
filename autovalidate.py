@@ -133,7 +133,6 @@ class PaulEmploiAuthedRequests(object):
     def __init__(self, user, password):
         self._session = requests.Session()
         self._session.headers.update({'User-Agent': 'Mozzarella/5.0'})
-        self._peam = None
         self._rest = None
         self._access_token = None
         self._login(user, password)
@@ -171,9 +170,9 @@ class PaulEmploiAuthedRequests(object):
         res.raise_for_status()
 
         mainjs = res.text
-        self._peam = extract_peam(mainjs)
+        peam = extract_peam(mainjs)
         self._rest = extract_rest(mainjs)
-        return buildAuthorizeUrl(self._peam)
+        return buildAuthorizeUrl(peam)
 
 
 
