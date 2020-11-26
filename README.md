@@ -6,12 +6,6 @@ de Paul. Par défaut, il remplit le formulaire en répondant *"Oui"* à
 autres. Cependant, avec l'option `--work`, des heures travaillées peuvent être
 déclarées.
 
-/!\ Attention. Ce programme a été testé uniquement par des hommes. Le
-formulaire contient une question cachée concernant le congé maternité. Bien que
-le programme doive fonctionner correctement si cette question est affiché,
-cette situation n'a pas été testée. Si vous êtes une femme au chômage,
-contactez-moi.
-
 En cas de succès il envoie un mail à l'adresse indiquée avec un résumé de
 l'actualisation. En cas d'échec, il envoie un rapport d'erreur au compte mail
 utilisé pour l'envoi des mails. L'envoie de mails a été testé uniquement avec
