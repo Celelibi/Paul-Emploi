@@ -113,24 +113,40 @@ def make_answers(datestart, workfile=None):
 
 
 
+def msgindemn(indemn, date):
+    if "typeAllocation" not in indemn:
+        return "Pas d'allocation prévue"
+
+    if indemn['typeAllocation'] != "ARE":
+        return "Allocation de type %r, pas de détails" % indemn['typeAllocation']
+
+    dailyindemn = float(indemn['indemnisationJournalierNet'])
+    _, daysinmonth = calendar.monthrange(date.year, date.month)
+    indemnestimate = dailyindemn * daysinmonth
+
+    enddate = datetime.datetime.fromisoformat(indemn['dateDecheanceDroitAre'])
+
+    msg = "Indemnisation prévue pour le mois de %s: %.2f€\n" % (date.strftime("%B"), indemnestimate)
+    msg += "Droit au chômage jusqu'au: %s\n" % enddate.strftime("%x")
+    return msg
+
+
+
 def dostuff(dest, user, password, workfile=None):
     pe = paul.PaulEmploi(user, password)
 
     situation = pe.situationsUtilisateur
     indemnisation = situation['indemnisation']
     actualisation = situation['actualisation']
-    enddate = datetime.datetime.fromisoformat(indemnisation['dateDecheanceDroitAre'])
+
+    if 'periodeCourante' not in actualisation:
+        raise RuntimeError("Looks like it's not the time for an 'actulisation'")
+
     indemndate = datetime.datetime.fromisoformat(actualisation['periodeCourante']['reference'])
     answers = make_answers(indemndate, workfile)
     actumsg, pdf = pe.actualisation(answers)
 
-    dailyindemn = float(indemnisation['indemnisationJournalierNet'])
-    _, daysinmonth = calendar.monthrange(indemndate.year, indemndate.month)
-    indemnestimate = dailyindemn * daysinmonth
-
-    msg = actumsg + "\n"
-    msg += "Indemnisation prévue pour le mois de %s: %.2f€\n" % (indemndate.strftime("%B"), indemnestimate)
-    msg += "Droit au chômage jusqu'au: %s\n" % enddate.strftime("%x")
+    msg = actumsg + "\n" + msgindemn(indemnisation, indemndate)
 
     jsondump = json.dumps(situation, indent=8).encode("utf-8")
     att = [("situation.json", jsondump), ("declaration.pdf", pdf)]
