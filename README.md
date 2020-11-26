@@ -16,7 +16,7 @@ un compte gmail.
 L'utilisation prévue est de lancer le bot tous les mois avec une entrée cron
 telle que suit:
 
-    0 8 1 * * dir/to/autovalidate.py dir/to/autovalidate.ini --user cfgUser
+    0 8 1 * * dir/to/autovalidate.py dir/to/paulemploi.ini --user cfgUser
 
 Le premier argument est le chemin vers le fichier de configuration dont la
 syntaxe est détaillée plus loin.
