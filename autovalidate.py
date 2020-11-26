@@ -140,13 +140,19 @@ class PaulEmploiAuthedRequests(object):
 
 
     def request(self, method, url, *args, **kwargs):
-        return self._session.request(method, url, *args, **kwargs)
+        res = self._session.request(method, url, *args, **kwargs)
+        res.raise_for_status()
+        return res
 
     def get(self, url, *args, **kwargs):
-        return self._session.get(url, *args, **kwargs)
+        res = self._session.get(url, *args, **kwargs)
+        res.raise_for_status()
+        return res
 
     def post(self, url, *args, **kwargs):
-        return self._session.post(url, *args, **kwargs)
+        res = self._session.post(url, *args, **kwargs)
+        res.raise_for_status()
+        return res
 
 
 
@@ -387,15 +393,11 @@ class PaulEmploi(object):
         situation = self.situationsUtilisateur
 
         res = self._req.get(situation['actualisation']['service']['url'])
-        res.raise_for_status()
-
         doc = lxml.html.fromstring(res.text, base_url=res.url)
         doc.make_links_absolute()
 
         form = doc.cssselect('form')[0]
         res = self._req.request(form.method, form.action, data=dict(form.fields))
-        res.raise_for_status()
-
         doc = lxml.html.fromstring(res.text, base_url=res.url)
         doc.make_links_absolute()
         docstr = lxml.html.tostring(doc, method='text', encoding='unicode')
@@ -411,7 +413,6 @@ class PaulEmploi(object):
 
             values = dict(form.fields)
             res = self._req.request(form.method, form.action, data=values)
-            res.raise_for_status()
             doc = lxml.html.fromstring(res.text, base_url=res.url)
             doc.make_links_absolute()
 
@@ -426,8 +427,6 @@ class PaulEmploi(object):
         values = dict(form.fields)
         values['formation'] = "NON"
         res = self._req.request(form.method, form.action, data=values)
-        res.raise_for_status()
-
         doc = lxml.html.fromstring(res.text, base_url=res.url)
         doc.make_links_absolute()
 
@@ -455,8 +454,6 @@ class PaulEmploi(object):
                         raise ValueError("Question block '%s' opened block '%s' which should open a second third level block '%r'. Only 2 levels supported right now." % (bloc.get("id"), showid, n))
 
         res = self._req.request(form.method, form.action, data=formvalues)
-        res.raise_for_status()
-
         doc = lxml.html.fromstring(res.text, base_url=res.url)
         doc.make_links_absolute()
 
@@ -477,8 +474,6 @@ class PaulEmploi(object):
 
         values = dict(form.fields)
         res = self._req.request(form.method, form.action, data=values)
-        res.raise_for_status()
-
         doc = lxml.html.fromstring(res.text, base_url=res.url)
         doc.make_links_absolute()
 
@@ -487,8 +482,6 @@ class PaulEmploi(object):
         link = links[0]
 
         res = self._req.get(link.get('href'))
-        res.raise_for_status()
-
         doc = lxml.html.fromstring(res.text, base_url=res.url)
         doc.make_links_absolute()
 
@@ -497,7 +490,6 @@ class PaulEmploi(object):
         pdflink = pdflinks[0]
 
         res = self._req.get(pdflink.get('href'))
-        res.raise_for_status()
         pdf = res.content
 
         return msg, pdf
