@@ -55,6 +55,31 @@ def extract_rest(script):
 
 
 
+def extract_layout(script):
+    start = script.index("layout:") + len("layout:")
+    nextopen = script.find("{", start)
+    pos = nextopen + 1
+    nextopen = script.find("{", pos)
+    nextclose = script.find("}", pos)
+    count = 1
+
+    while count > 0:
+        assert nextclose != -1
+        if nextopen != -1 and nextopen < nextclose:
+            pos = nextopen + 1
+            count += 1
+            nextopen = script.find("{", pos)
+        else:
+            pos = nextclose + 1
+            count -= 1
+            nextclose = script.find("}", pos)
+
+    layout = script[start:pos]
+    layout = re.sub(r'(?<=[{,])([a-zA-Z0-9_]+)(?=:)', '"\\1"', layout)
+    return json.loads(layout)
+
+
+
 def randomizeString(n):
     charset = "0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-"
     return "".join(random.choices(charset, k=n))
@@ -95,6 +120,7 @@ class PaulEmploiAuthedRequests(object):
         self._session = requests.Session()
         self._session.headers.update({'User-Agent': 'Mozzarella/5.0'})
         self._rest = None
+        self._layout = None
         self._access_token = None
         self._login(user, password)
 
@@ -137,6 +163,7 @@ class PaulEmploiAuthedRequests(object):
         mainjs = res.text
         peam = extract_peam(mainjs)
         self._rest = extract_rest(mainjs)
+        self._layout = extract_layout(mainjs)
         return buildAuthorizeUrl(peam)
 
 
