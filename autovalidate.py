@@ -4,62 +4,14 @@ import argparse
 import calendar
 import configparser
 import datetime
-import email.message
-import email.policy
 import json
 import locale
 import logging
-import mimetypes
 import re
-import smtplib
 import traceback
 
+import mailer
 import paul
-
-
-
-class Mailer(object):
-    def __init__(self, host, port=None, user=None, pwd=None):
-        self._host = host
-        self._port = port
-        self._user = user
-        self._pass = pwd
-
-
-
-    def message(self, to, subj, msg, attachments=[]):
-        # FIXME: use email.policy.SMTP when the bug #34424 is fixed
-        policy = email.policy.EmailPolicy(raise_on_defect=True, linesep="\r\n", utf8=True)
-        mail = email.message.EmailMessage(policy=policy)
-        mail['Subject'] = "[BOT Paul Emploi] %s" % subj
-        mail['From'] = "Bot Paul-Emploi <%s>" % self._user
-        mail['To'] = "Chômeur <%s>" % to
-        mail.set_content(msg, disposition='inline')
-
-        for name, content in attachments:
-            mime, encoding = mimetypes.guess_type(name)
-            if mime is None or encoding is not None:
-                mime = "application/octet-stream"
-
-            maintype, subtype = mime.split("/")
-            mail.add_attachment(content, maintype=maintype, subtype=subtype, filename=name)
-
-        logging.debug("Connecting to SMTP server %s:%r", self._host, self._port)
-        smtp = smtplib.SMTP_SSL(self._host, port=self._port)
-
-        if self._user is not None and self._pass is not None:
-            logging.debug("Login to SMTP server with username: %s", self._user)
-            smtp.login(self._user, self._pass)
-        else:
-            logging.debug("No SMTP login or password provided")
-
-        smtp.send_message(mail)
-        smtp.quit()
-
-
-
-    def error(self, to, msg):
-        self.message(to, "Error", msg)
 
 
 
@@ -146,7 +98,7 @@ def msgindemn(indemn, date):
 
 
 
-def dostuff(mailer, dest, user, password, workfile=None):
+def dostuff(mailsender, dest, user, password, workfile=None):
     pe = paul.PaulEmploi(user, password)
 
     situation = pe.situationsUtilisateur
@@ -165,7 +117,7 @@ def dostuff(mailer, dest, user, password, workfile=None):
     jsondump = json.dumps(situation, indent=8).encode("utf-8")
     att = [("situation.json", jsondump), ("declaration.pdf", pdf)]
 
-    mailer.message(dest, "Actualisation", msg, att)
+    mailsender.message(dest, "Actualisation", msg, att)
 
 
 
@@ -200,7 +152,7 @@ def main():
     smtpport = config["SMTP"].get("smtpport")
     smtpuser = config["SMTP"].get("smtpuser")
     smtppassword = config["SMTP"].get("smtppwd")
-    mailer = Mailer(smtphost, smtpport, smtpuser, smtppassword)
+    mailsender = mailer.Mailer(smtphost, smtpport, smtpuser, smtppassword)
 
 
     if peuser is None:
@@ -214,12 +166,12 @@ def main():
     emailaddr = config[section]["email"]
 
     try:
-        dostuff(mailer, emailaddr, peuser, pepwd, workfile)
+        dostuff(mailsender, emailaddr, peuser, pepwd, workfile)
     except:
         logging.exception("Top-level exception:")
         msg = "Exception caught while trying to run the \"actualisation\".\n\n"
         msg += traceback.format_exc()
-        mailer.error(smtpuser, msg)
+        mailsender.error(smtpuser, msg)
 
 
 
