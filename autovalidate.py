@@ -198,8 +198,8 @@ def main():
 
     smtphost = config["SMTP"]["smtphost"]
     smtpport = config["SMTP"].get("smtpport")
-    smtpuser = config["SMTP"]["smtpuser"]
-    smtppassword = config["SMTP"]["smtppwd"]
+    smtpuser = config["SMTP"].get("smtpuser")
+    smtppassword = config["SMTP"].get("smtppwd")
     mailer = Mailer(smtphost, smtpport, smtpuser, smtppassword)
 
 
