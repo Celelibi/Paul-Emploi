@@ -18,34 +18,48 @@ import paul
 
 
 
-smtphost = None
-smtpport = None
-smtpaccount = None
-smtppassword = None
+class Mailer(object):
+    def __init__(self, host, port=None, user=None, pwd=None):
+        self._host = host
+        self._port = port
+        self._user = user
+        self._pass = pwd
 
 
 
-def sendmail(to, subj, msg, attachments=[]):
-    # FIXME: use email.policy.SMTP when the bug #34424 is fixed
-    policy = email.policy.EmailPolicy(raise_on_defect=True, linesep="\r\n", utf8=True)
-    mail = email.message.EmailMessage(policy=policy)
-    mail['Subject'] = "[BOT Paul Emploi] %s" % subj
-    mail['From'] = "%s <%s>" % ("Auto-actualisation", smtpaccount)
-    mail['To'] = "Chômeur <%s>" % to
-    mail.set_content(msg, disposition='inline')
+    def message(self, to, subj, msg, attachments=[]):
+        # FIXME: use email.policy.SMTP when the bug #34424 is fixed
+        policy = email.policy.EmailPolicy(raise_on_defect=True, linesep="\r\n", utf8=True)
+        mail = email.message.EmailMessage(policy=policy)
+        mail['Subject'] = "[BOT Paul Emploi] %s" % subj
+        mail['From'] = "Bot Paul-Emploi <%s>" % self._user
+        mail['To'] = "Chômeur <%s>" % to
+        mail.set_content(msg, disposition='inline')
 
-    for name, content in attachments:
-        mime, encoding = mimetypes.guess_type(name)
-        if mime is None or encoding is not None:
-            mime = "application/octet-stream"
+        for name, content in attachments:
+            mime, encoding = mimetypes.guess_type(name)
+            if mime is None or encoding is not None:
+                mime = "application/octet-stream"
 
-        maintype, subtype = mime.split("/")
-        mail.add_attachment(content, maintype=maintype, subtype=subtype, filename=name)
+            maintype, subtype = mime.split("/")
+            mail.add_attachment(content, maintype=maintype, subtype=subtype, filename=name)
 
-    smtp = smtplib.SMTP_SSL(smtphost, port=smtpport)
-    smtp.login(smtpaccount, smtppassword)
-    smtp.send_message(mail)
-    smtp.quit()
+        logging.debug("Connecting to SMTP server %s:%r", self._host, self._port)
+        smtp = smtplib.SMTP_SSL(self._host, port=self._port)
+
+        if self._user is not None and self._pass is not None:
+            logging.debug("Login to SMTP server with username: %s", self._user)
+            smtp.login(self._user, self._pass)
+        else:
+            logging.debug("No SMTP login or password provided")
+
+        smtp.send_message(mail)
+        smtp.quit()
+
+
+
+    def error(self, to, msg):
+        self.message(to, "Error", msg)
 
 
 
@@ -132,7 +146,7 @@ def msgindemn(indemn, date):
 
 
 
-def dostuff(dest, user, password, workfile=None):
+def dostuff(mailer, dest, user, password, workfile=None):
     pe = paul.PaulEmploi(user, password)
 
     situation = pe.situationsUtilisateur
@@ -151,7 +165,7 @@ def dostuff(dest, user, password, workfile=None):
     jsondump = json.dumps(situation, indent=8).encode("utf-8")
     att = [("situation.json", jsondump), ("declaration.pdf", pdf)]
 
-    sendmail(dest, "Actualisation", msg, att)
+    mailer.message(dest, "Actualisation", msg, att)
 
 
 
@@ -182,11 +196,11 @@ def main():
     config = configparser.ConfigParser()
     config.read(configpath)
 
-    global smtphost, smtpport, smtpaccount, smtppassword
     smtphost = config["SMTP"]["smtphost"]
     smtpport = config["SMTP"].get("smtpport")
-    smtpaccount = config["SMTP"]["smtpuser"]
+    smtpuser = config["SMTP"]["smtpuser"]
     smtppassword = config["SMTP"]["smtppwd"]
+    mailer = Mailer(smtphost, smtpport, smtpuser, smtppassword)
 
 
     if peuser is None:
@@ -200,12 +214,12 @@ def main():
     emailaddr = config[section]["email"]
 
     try:
-        dostuff(emailaddr, peuser, pepwd, workfile)
+        dostuff(mailer, emailaddr, peuser, pepwd, workfile)
     except:
         logging.exception("Top-level exception:")
         msg = "Exception caught while trying to run the \"actualisation\".\n\n"
         msg += traceback.format_exc()
-        sendmail(smtpaccount, "Error", msg)
+        mailer.error(smtpuser, msg)
 
 
 
