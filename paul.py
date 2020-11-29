@@ -417,8 +417,10 @@ class PaulEmploi(object):
         doc = lxml.html.fromstring(res.text, base_url=res.url)
         doc.make_links_absolute()
 
+        # One pesky self-submitting form
         form = doc.forms[0]
         res = self._req.request(form.method, form.action, data=dict(form.fields))
+
         doc = lxml.html.fromstring(res.text, base_url=res.url)
         doc.make_links_absolute()
         docstr = lxml.html.tostring(doc, method='text', encoding='unicode')
