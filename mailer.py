@@ -15,7 +15,10 @@ class Mailer(object):
 
 
 
-    def message(self, to, subj, msg, attachments=[]):
+    def message(self, to, subj, msg, attachments=None):
+        if attachments is None:
+            attachments = []
+
         policy = email.policy.EmailPolicy(raise_on_defect=True, linesep="\r\n", utf8=True)
         mail = email.message.EmailMessage(policy=policy)
         mail['Subject'] = "[BOT Paul Emploi] %s" % subj
