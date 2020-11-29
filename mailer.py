@@ -41,6 +41,7 @@ class Mailer(object):
         else:
             logging.debug("No SMTP login or password provided")
 
+        logging.debug("Sending message of %d bytes", len(mail.as_bytes()))
         smtp.send_message(mail)
         smtp.quit()
 
