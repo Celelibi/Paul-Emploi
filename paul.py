@@ -1,3 +1,4 @@
+import datetime
 import json
 import logging
 import random
@@ -312,6 +313,26 @@ class PaulEmploi(object):
 
 
 
+    def navigation_service_url(self, path):
+        def tree_descent(trees, path):
+            code, *path = path
+            trees = [t for t in trees if t['code'] == code]
+            if len(trees) > 1:
+                raise RuntimeError("More than one element with code " + code)
+            if len(trees) == 0:
+                raise RuntimeError("No element with code " + code)
+
+            if len(path) == 0:
+                return trees[0]
+
+            return tree_descent(trees[0]["sousElements"], path)
+
+        path = path.split("/")
+        service = tree_descent(self.navigation['burger'], path)
+        return service["url"]
+
+
+
     def _fill_block(self, bloc, answers):
         blocid = bloc.get('id')
         logging.debug("Filling block %s", blocid)
@@ -480,3 +501,119 @@ class PaulEmploi(object):
         pdf = res.content
 
         return msg, pdf
+
+
+
+    def _mails_desc(self, pyjama):
+        mails = []
+
+        for row in pyjama.cssselect('tr'):
+            if row.cssselect('th'):
+                continue
+
+            mail = {}
+            isread = ("courrierNonLu" not in row.classes)
+            mail['isread'] = isread
+
+            date, = row.cssselect('td.date')
+            date = date.text_content()
+            mail['date'] = datetime.datetime.strptime(date, "%d/%m/%Y").date()
+
+            title, = row.cssselect('td.avisPaie')
+            mail['title'] = title.text_content()
+
+            channel, = row.cssselect('td.courrierPap')
+            mail['channel'] = channel.text_content()
+
+            link, = row.cssselect('td.Telechar a')
+            mail['link'] = link.get('href')
+
+            mails.append(mail)
+
+        return mails
+
+
+
+    def _all_mails_desc(self, doc):
+        paging, = doc.cssselect('.pagination')
+
+        onlydigitsre = re.compile(r'^[0-9]+$')
+        pagelinks = []
+        for l in paging.cssselect('a'):
+            if onlydigitsre.match(l.text_content()):
+                href = l.get('href')
+                pagelinks.append(href)
+
+        pyjama, = doc.cssselect('table.listingPyjama')
+        mails = self._mails_desc(pyjama)
+
+        for link in pagelinks:
+            res = self._req.get(link)
+            doc = lxml.html.fromstring(res.content, base_url=res.url)
+            doc.make_links_absolute()
+
+            pyjama, = doc.cssselect('table.listingPyjama')
+            mails += self._mails_desc(pyjama)
+
+        return mails
+
+
+
+    def newmails(self, allmessages=False, since=None):
+        url = self.navigation_service_url("dossier-de/echanges-avec-pe/courriers-recus-pe")
+        res = self._req.get(url)
+        doc = lxml.html.fromstring(res.content, base_url=res.url)
+        doc.make_links_absolute()
+
+        # Just an annoying auto-validated form
+        form = doc.forms[0]
+        formvalues = {inp.name: inp.value for inp in form.cssselect('input')}
+        res = self._req.request(form.method, form.action, data=formvalues)
+
+        doc = lxml.html.fromstring(res.content, base_url=res.url)
+        doc.make_links_absolute()
+
+        # Select all the relevant mails
+        form = doc.forms[0]
+        inputs = form.cssselect('input[type!="radio"]')
+        formvalues = {inp.name: inp.value for inp in inputs}
+
+        if not allmessages:
+            # Check the radio input and uncheck all others
+            tocheck, = form.cssselect('input#nonlu')
+            groupname = tocheck.name
+            for inp in form.cssselect('input[name="%s"]' % groupname):
+                inp.checked = False
+
+            tocheck.checked = True
+
+        inputs = form.cssselect('input[type="radio"]')
+        names = set(inp.name for inp in inputs)
+        for n in names:
+            group = [inp for inp in inputs if inp.name == n]
+            formvalues[n] = next(inp.value for inp in group if inp.checked)
+
+        for sel in form.cssselect('select'):
+            formvalues[sel.name] = sel.value
+
+        if since:
+            formvalues['dateDebut'] = since
+
+        res = self._req.request(form.method, form.action, data=formvalues)
+        doc = lxml.html.fromstring(res.content, base_url=res.url)
+        doc.make_links_absolute()
+
+        return self._all_mails_desc(doc)
+
+
+
+    def download_mail(self, link):
+        res = self._req.get(link)
+        doc = lxml.html.fromstring(res.content, base_url=res.url)
+        doc.make_links_absolute()
+
+        iframe, = doc.cssselect('iframe')
+        res = self._req.get(iframe.get('src'))
+        assert res.headers['Content-Type'] == "application/pdf"
+
+        return res.content
