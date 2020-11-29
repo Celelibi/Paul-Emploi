@@ -16,7 +16,6 @@ class Mailer(object):
 
 
     def message(self, to, subj, msg, attachments=[]):
-        # FIXME: use email.policy.SMTP when the bug #34424 is fixed
         policy = email.policy.EmailPolicy(raise_on_defect=True, linesep="\r\n", utf8=True)
         mail = email.message.EmailMessage(policy=policy)
         mail['Subject'] = "[BOT Paul Emploi] %s" % subj
