@@ -101,7 +101,7 @@ def msgindemn(indemn, date):
 def dostuff(mailsender, dest, user, password, workfile=None):
     pe = paul.PaulEmploi(user, password)
 
-    situation = pe.situationsUtilisateur
+    situation = pe.getSituationsUtilisateur()
     indemnisation = situation['indemnisation']
     actualisation = situation['actualisation']
 

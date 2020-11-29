@@ -306,12 +306,28 @@ class PaulEmploiAuthedRequests(object):
 class PaulEmploi(object):
     def __init__(self, user, password):
         self._req = PaulEmploiAuthedRequests(user, password)
-        self.situationsUtilisateur = self._req.getSituationsUtilisateur()
-        self.navigation = self._req.getNavigation()
+        self._situationsUtilisateur = None
+        self._navigation = None
+
+
+
+    def getSituationsUtilisateur(self, force=False):
+        if self._situationsUtilisateur is None or force:
+            self._situationsUtilisateur = self._req.getSituationsUtilisateur()
+        return self._situationsUtilisateur
+
+
+
+    def getNavigation(self, force=False):
+        if self._navigation is None or force:
+            self._navigation = self._req.getNavigation()
+        return self._navigation
 
 
 
     def navigation_service_url(self, path):
+        navigation = self.getNavigation()
+
         def tree_descent(trees, path):
             code, *path = path
             trees = [t for t in trees if t['code'] == code]
@@ -326,7 +342,7 @@ class PaulEmploi(object):
             return tree_descent(trees[0]["sousElements"], path)
 
         path = path.split("/")
-        service = tree_descent(self.navigation['burger'], path)
+        service = tree_descent(navigation['burger'], path)
         return service["url"]
 
 
@@ -396,7 +412,7 @@ class PaulEmploi(object):
 
 
     def actualisation(self, answers):
-        situation = self.situationsUtilisateur
+        situation = self.getSituationsUtilisateur()
 
         res = self._req.get(situation['actualisation']['service']['url'])
         doc = lxml.html.fromstring(res.text, base_url=res.url)
