@@ -412,9 +412,8 @@ class PaulEmploi(object):
 
 
     def actualisation(self, answers):
-        situation = self.getSituationsUtilisateur()
-
-        res = self._req.get(situation['actualisation']['service']['url'])
+        url = self.navigation_service_url("dossier-de/actualisation/m-actualiser")
+        res = self._req.get(url)
         doc = lxml.html.fromstring(res.text, base_url=res.url)
         doc.make_links_absolute()
 
