@@ -167,6 +167,8 @@ def main():
 
     try:
         dostuff(mailsender, emailaddr, peuser, pepwd, workfile)
+    except KeyboardInterrupt:
+        raise
     except:
         logging.exception("Top-level exception:")
         msg = "Exception caught while trying to run the \"actualisation\".\n\n"
