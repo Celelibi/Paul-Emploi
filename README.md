@@ -1,4 +1,56 @@
-# Bot d'actualisation de situation Pôle Emploi
+# Programmes Pôle Emploi
+
+Ce repository contient plusieurs programmes pour interagir avec le site de Pôle
+Emploi.
+- Un bot d'actualisation de situation
+- Un pour récupérer les courriers web et les envoyer par mail.
+
+Ils partagent le même fichier de configuration.
+
+## Bot de rapatriement courriers
+
+Ce programme va chercher les courriers disponibles sur le site de Pôle Emploi et
+les envoi par mail à l'adresse configurée. Par défaut, il n'ira chercher que les
+messages non-lus de ces 6 derniers mois.
+
+### Utilisation
+
+L'utilisation normale prévue est de lancer le bot tous les jours avec les
+réglages par défaut. Il enverra par mail tous les messages non-lus. L'entrée
+cron suivante peut être utilisée pour ça.
+
+    0 8,13,18 * * * dir/to/mailmessages.py dir/to/paulemploi.ini --user cfgUser
+
+Le premier argument est le chemin vers le fichier de configuration dont la
+syntaxe est détaillée plus loin.
+
+`cfgUser` est le nom du compte utilisateur défini dans la configuration pour
+qui il faut effectuer l'actualisation sur le site Pôle Emploi. S'il est omit,
+le premier compte définit dans le fichier de configuration sera utilisé.
+
+L'option `--all` enverra aussi bien les messages déjà lus que les messages
+non-lus. Cette option peut être utilisée la première fois, pour récupérer tous
+les messages. Notamment lorsque combiné à l'option `--since`.
+
+L'option `--since` prend une date en paramètre et définie la date la plus
+ancienne des messages à renvoyer par mail.
+
+L'option `--no-send` indique de ne pas envoyer les mails. Elle provoque
+uniquement l'affichage d'un résumé des messages qui seraient envoyés. Elle est
+utile pour tester une commande avant d'envoyer 50 mails d'un coup. :)
+
+Note: Les messages sont automatiquement marqués comme lus une fois qu'ils ont
+été téléchargés. L'option `--no-send` ne télécharge pas les fichiers PDF, et ne
+marque donc pas les messages comme lus.
+
+La commande suivante peut être utilisée pour afficher la liste de tous les
+courriers encore stockés chez Pôle Emploi.
+
+    ./mailmessages.py --since 01/01/1970 --all --no-send paulemploi.ini
+
+Enlever l'option `--no-send` enverra les messages par mail.
+
+## Bot d'actualisation de situation Pôle Emploi
 
 Ce programme rempli automatiquement le formulaire d'actualisation sur le site
 de Paul. Par défaut, il remplit le formulaire en répondant *"Oui"* à
@@ -11,7 +63,7 @@ l'actualisation. En cas d'échec, il envoie un rapport d'erreur au compte mail
 utilisé pour l'envoi des mails. L'envoie de mails a été testé uniquement avec
 un compte gmail.
 
-# Utilisation
+### Utilisation
 
 L'utilisation prévue est de lancer le bot tous les mois avec une entrée cron
 telle que suit:
@@ -72,9 +124,10 @@ Le `PEusername` dans le nom de la section est modifiable. C'est le nom qui doit
 
 # Work file
 
-Le *work file* liste les heures travaillées ou prévues. Seules les lignes
-concernant le mois en cours de déclaration seront utilisées. Plusieurs lignes
-peuvent concerner la même journée sans problème. Elles seront cumulées.
+Le *work file* liste les heures travaillées ou prévues. Il n'est actuellement
+utilisé que par le bot d'actualisation. Seules les lignes concernant le mois en
+cours de déclaration seront utilisées. Plusieurs lignes peuvent concerner la
+même journée sans problème. Elles seront cumulées.
 
 ## Format
 
