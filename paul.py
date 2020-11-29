@@ -141,6 +141,16 @@ class PaulEmploiAuthedRequests(object):
         res.raise_for_status()
         return res
 
+    def getjson(self, url):
+        headers = {
+            "Accept": "application/json, text/plain, */*",
+            "pe-nom-application": "pn073-tdbcandidat",
+            "Authorization": "Bearer " + self._access_token
+        }
+
+        res = self.get(url, headers=headers)
+        return res.json()
+
 
 
     def _authorizeUrl(self):
@@ -284,14 +294,7 @@ class PaulEmploiAuthedRequests(object):
 
 
     def getSituationsUtilisateur(self):
-        headers = {
-            "Accept": "application/json, text/plain, */*",
-            "pe-nom-application": "pn073-tdbcandidat",
-            "Authorization": "Bearer " + self._access_token
-        }
-
-        res = self.get(self._rest['ex002']['situationsUtilisateur'], headers=headers)
-        return res.json()
+        return self.getjson(self._rest['ex002']['situationsUtilisateur'])
 
 
 
