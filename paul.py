@@ -181,7 +181,6 @@ class PaulEmploiAuthedRequests(object):
 
     @staticmethod
     def _realm_override(url):
-        # TODO: cache the result?
         qs = urllib.parse.parse_qs(url.fragment)
         if 'realm' not in qs:
             qs = urllib.parse.parse_qs(url.query)
@@ -201,7 +200,6 @@ class PaulEmploiAuthedRequests(object):
 
     @staticmethod
     def _pathjson(url):
-        # TODO: cache the result?
         pathcontext = "/".join(url.path.rstrip('/').split("/")[:-1])
         pathjson = pathcontext + "/json"
         return pathjson
