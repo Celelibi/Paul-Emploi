@@ -130,6 +130,7 @@ def main():
     parser.add_argument("cfgfile", metavar="configfile", help="Fichier de configuration")
     parser.add_argument("--user", "-u", metavar="PEusername", help="Compte Pôle Emploi configuré à utiliser")
     parser.add_argument("--work", "-w", metavar="worklog", help="Fichier des heures travaillées")
+    parser.add_argument("--no-error-mail", action="store_true", help="N'envoie pas de mail pour les erreurs")
     parser.add_argument("--verbose", "-v", action="count", help="Augmente le niveau de verbosité")
 
     args = parser.parse_args()
@@ -138,6 +139,7 @@ def main():
     peuser = args.user
     verbose = args.verbose
     workfile = args.work
+    errormail = not args.no_error_mail
 
     if verbose is not None:
         loglevels = ["WARNING", "INFO", "DEBUG", "NOTSET"]
@@ -171,6 +173,9 @@ def main():
         raise
     except:
         logging.exception("Top-level exception:")
+        if not errormail:
+            raise
+
         msg = "Exception caught while trying to run the \"actualisation\".\n\n"
         msg += traceback.format_exc()
         mailsender.error(smtpuser, msg)
