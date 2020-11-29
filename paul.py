@@ -418,7 +418,7 @@ class PaulEmploi(object):
         doc = lxml.html.fromstring(res.text, base_url=res.url)
         doc.make_links_absolute()
 
-        form = doc.cssselect('form')[0]
+        form = doc.forms[0]
         res = self._req.request(form.method, form.action, data=dict(form.fields))
         doc = lxml.html.fromstring(res.text, base_url=res.url)
         doc.make_links_absolute()
