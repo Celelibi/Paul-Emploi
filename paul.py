@@ -298,10 +298,17 @@ class PaulEmploiAuthedRequests(object):
 
 
 
+    def getNavigation(self):
+        d = self._layout['rest']['ex017']
+        return self.getjson(d['uri'] + d['navigation'])
+
+
+
 class PaulEmploi(object):
     def __init__(self, user, password):
         self._req = PaulEmploiAuthedRequests(user, password)
         self.situationsUtilisateur = self._req.getSituationsUtilisateur()
+        self.navigation = self._req.getNavigation()
 
 
 
