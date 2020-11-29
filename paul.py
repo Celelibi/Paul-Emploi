@@ -586,34 +586,21 @@ class PaulEmploi(object):
 
         # Just an annoying auto-validated form
         form = doc.forms[0]
-        formvalues = {inp.name: inp.value for inp in form.cssselect('input')}
-        res = self._req.request(form.method, form.action, data=formvalues)
+        values = dict(form.fields)
+        res = self._req.request(form.method, form.action, data=values)
 
         doc = lxml.html.fromstring(res.content, base_url=res.url)
         doc.make_links_absolute()
 
         # Select all the relevant mails
         form = doc.forms[0]
-        inputs = form.cssselect('input[type!="radio"]')
-        formvalues = {inp.name: inp.value for inp in inputs}
+        formvalues = dict(form.fields)
 
         if not allmessages:
             # Check the radio input and uncheck all others
             tocheck, = form.cssselect('input#nonlu')
-            groupname = tocheck.name
-            for inp in form.cssselect('input[name="%s"]' % groupname):
-                inp.checked = False
-
             tocheck.checked = True
-
-        inputs = form.cssselect('input[type="radio"]')
-        names = set(inp.name for inp in inputs)
-        for n in names:
-            group = [inp for inp in inputs if inp.name == n]
-            formvalues[n] = next(inp.value for inp in group if inp.checked)
-
-        for sel in form.cssselect('select'):
-            formvalues[sel.name] = sel.value
+            formvalues[tocheck.name] = tocheck.value
 
         if since:
             formvalues['dateDebut'] = since
