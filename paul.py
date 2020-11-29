@@ -549,6 +549,10 @@ class PaulEmploi(object):
 
 
     def _all_mails_desc(self, doc):
+        pyjamas = doc.cssselect('table.listingPyjama')
+        if len(pyjamas) == 0:
+            return []
+
         paging, = doc.cssselect('.pagination')
 
         onlydigitsre = re.compile(r'^[0-9]+$')
