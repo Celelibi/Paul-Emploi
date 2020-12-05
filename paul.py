@@ -7,6 +7,7 @@ import urllib.parse
 
 import lxml.html
 import requests
+import retrying
 
 
 __all__ = ['PaulEmploi', 'PaulEmploiAuthedRequests', 'default_answers']
@@ -260,6 +261,7 @@ class PaulEmploiAuthedRequests(object):
 
 
 
+    @retrying.retry(stop_max_attempt_number=3, stop_max_delay=3600000, wait_exponential_multiplier=1000, wait_exponential_max=10000)
     def _login(self, user, password):
         authorizeurl = self._authorizeUrl()
         res = self.get(authorizeurl)
@@ -292,11 +294,13 @@ class PaulEmploiAuthedRequests(object):
 
 
 
+    @retrying.retry(stop_max_attempt_number=3, stop_max_delay=3600000, wait_exponential_multiplier=1000, wait_exponential_max=10000)
     def getSituationsUtilisateur(self):
         return self.getjson(self._rest['ex002']['situationsUtilisateur'])
 
 
 
+    @retrying.retry(stop_max_attempt_number=3, stop_max_delay=3600000, wait_exponential_multiplier=1000, wait_exponential_max=10000)
     def getNavigation(self):
         d = self._layout['rest']['ex017']
         return self.getjson(d['uri'] + d['navigation'])
@@ -411,6 +415,7 @@ class PaulEmploi(object):
 
 
 
+    @retrying.retry(stop_max_attempt_number=3, stop_max_delay=3600000, wait_exponential_multiplier=1000, wait_exponential_max=10000)
     def actualisation(self, answers):
         url = self.navigation_service_url("dossier-de/actualisation/m-actualiser")
         res = self._req.get(url)
@@ -578,6 +583,7 @@ class PaulEmploi(object):
 
 
 
+    @retrying.retry(stop_max_attempt_number=3, stop_max_delay=3600000, wait_exponential_multiplier=1000, wait_exponential_max=10000)
     def newmails(self, allmessages=False, since=None):
         url = self.navigation_service_url("dossier-de/echanges-avec-pe/courriers-recus-pe")
         res = self._req.get(url)
@@ -613,6 +619,7 @@ class PaulEmploi(object):
 
 
 
+    @retrying.retry(stop_max_attempt_number=3, stop_max_delay=3600000, wait_exponential_multiplier=1000, wait_exponential_max=10000)
     def download_mail(self, link):
         res = self._req.get(link)
         doc = lxml.html.fromstring(res.content, base_url=res.url)
