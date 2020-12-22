@@ -25,15 +25,15 @@ Le premier argument est le chemin vers le fichier de configuration dont la
 syntaxe est détaillée plus loin.
 
 `cfgUser` est le nom du compte utilisateur défini dans la configuration pour
-qui il faut effectuer l'actualisation sur le site Pôle Emploi. S'il est omit,
-le premier compte définit dans le fichier de configuration sera utilisé.
+qui il faut récupérer les courriers sur le site Pôle Emploi. S'il est omit, le
+premier compte définit dans le fichier de configuration sera utilisé.
 
 L'option `--all` enverra aussi bien les messages déjà lus que les messages
 non-lus. Cette option peut être utilisée la première fois, pour récupérer tous
-les messages. Notamment lorsque combiné à l'option `--since`.
+les messages. Notamment lorsque combinée à l'option `--since`.
 
 L'option `--since` prend une date en paramètre et définie la date la plus
-ancienne des messages à renvoyer par mail.
+ancienne des messages reçus à renvoyer par mail.
 
 L'option `--no-send` indique de ne pas envoyer les mails. Elle provoque
 uniquement l'affichage d'un résumé des messages qui seraient envoyés. Elle est
@@ -52,7 +52,7 @@ Enlever l'option `--no-send` enverra les messages par mail.
 
 ## Bot d'actualisation de situation Pôle Emploi
 
-Ce programme rempli automatiquement le formulaire d'actualisation sur le site
+Ce programme remplit automatiquement le formulaire d'actualisation sur le site
 de Paul. Par défaut, il remplit le formulaire en répondant *"Oui"* à
 *"Etes-vous toujours à la recherche d'un emploi ?"* et *"Non"* à toutes les
 autres. Cependant, avec l'option `--work`, des heures travaillées peuvent être
