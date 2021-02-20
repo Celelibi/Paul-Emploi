@@ -625,7 +625,7 @@ class PaulEmploi(object):
         doc = lxml.html.fromstring(res.content, base_url=res.url)
         doc.make_links_absolute()
 
-        iframe, = doc.cssselect('iframe')
+        iframe, = doc.cssselect('embed')
         res = self._req.get(iframe.get('src'))
         assert res.headers['Content-Type'] == "application/pdf"
 
