@@ -49,7 +49,7 @@ def main():
     parser.add_argument("cfgfile", metavar="configfile", help="Fichier de configuration")
     parser.add_argument("--user", "-u", metavar="PEusername", help="Compte Pôle Emploi configuré à utiliser")
     parser.add_argument("--all", action='store_true', help="Envoie tous les messages et pas seulement ceux non-lus")
-    parser.add_argument("--since", help="Envoie uniquement les messages reçus après cette date")
+    parser.add_argument("--since", metavar="JJ/MM/AAAA", help="Envoie uniquement les messages reçus après cette date")
     parser.add_argument("--no-send", "-n", action='store_true', help="N'envoie pas les mails, affiche le résumé")
     parser.add_argument("--verbose", "-v", action="count", help="Augmente le niveau de verbosité")
 
