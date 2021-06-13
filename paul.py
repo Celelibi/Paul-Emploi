@@ -49,7 +49,10 @@ def extract_json(script, tagre):
 
 def extract_peam(script):
     peamre = re.compile(r'peam\s*:\s*')
-    return extract_json(script, peamre)
+    peams = extract_json(script, peamre)
+    if len(peams) > 1:
+        raise RuntimeError("More than one PEAM block")
+    return peams[0]
 
 
 
@@ -146,7 +149,7 @@ class PaulEmploiAuthedRequests(object):
         doc.make_links_absolute()
 
         # Find and load main.*.js script to extract some informations from it
-        mainscripts = doc.cssselect('script[src*="/main."][src$=".js"]')
+        mainscripts = doc.cssselect('script[src*="/main-es5."][src$=".js"]')
         if len(mainscripts) == 0:
             raise ValueError("No main.js script found\n" + res.text)
         if len(mainscripts) > 1:
