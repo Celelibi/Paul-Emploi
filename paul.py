@@ -38,47 +38,30 @@ default_answers = {
 
 
 
+def extract_json(script, tagre):
+    pos = tagre.search(script).end()
+    script_quoted = re.sub(r'(?<=[{,])\s*([a-zA-Z0-9_]+)\s*(?=:)', '"\\1"', script[pos:])
+    decoder = json.JSONDecoder()
+    obj, _ = decoder.raw_decode(script_quoted)
+    return obj
+
+
 
 def extract_peam(script):
-    match = re.search(r'peam:({(?:[^{}]*\{[^{}]*\})*})', script)
-    peam = match.group(1)
-    peam = re.sub(r'(?<=[{,])([a-zA-Z0-9_]+)(?=:)', '"\\1"', peam)
-    peam = json.loads(peam)
-    return peam
+    peamre = re.compile(r'peam\s*:\s*')
+    return extract_json(script, peamre)
 
 
 
 def extract_rest(script):
-    match = re.search(r'rest:({(?:[^{}]*\{[^{}]*\})*})', script)
-    rest = match.group(1)
-    rest = re.sub(r'(?<=[{,])([a-zA-Z0-9_]+)(?=:)', '"\\1"', rest)
-    rest = json.loads(rest)
-    return rest
+    restre = re.compile(r'rest\s*:\s*')
+    return extract_json(script, restre)
 
 
 
 def extract_layout(script):
-    start = script.index("layout:") + len("layout:")
-    nextopen = script.find("{", start)
-    pos = nextopen + 1
-    nextopen = script.find("{", pos)
-    nextclose = script.find("}", pos)
-    count = 1
-
-    while count > 0:
-        assert nextclose != -1
-        if nextopen != -1 and nextopen < nextclose:
-            pos = nextopen + 1
-            count += 1
-            nextopen = script.find("{", pos)
-        else:
-            pos = nextclose + 1
-            count -= 1
-            nextclose = script.find("}", pos)
-
-    layout = script[start:pos]
-    layout = re.sub(r'(?<=[{,])([a-zA-Z0-9_]+)(?=:)', '"\\1"', layout)
-    return json.loads(layout)
+    layoutre = re.compile(r'layout\s*:\s*')
+    return extract_json(script, layoutre)
 
 
 
