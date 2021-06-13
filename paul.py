@@ -165,7 +165,7 @@ class PaulEmploiAuthedRequests(object):
         # Find and load main.*.js script to extract some informations from it
         mainscripts = doc.cssselect('script[src*="/main."][src$=".js"]')
         if len(mainscripts) == 0:
-            raise ValueError("No main.js script found")
+            raise ValueError("No main.js script found\n" + res.text)
         if len(mainscripts) > 1:
             raise ValueError("Several main.js scripts were found")
 
