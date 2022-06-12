@@ -110,8 +110,19 @@ utilisateur configurés.
 - `smtphost` et `smtpport` définissent le nom de domaine et le port du serveur
   SMTP. Note: Il s'agit nécessairement du port SMTPS et le port par défaut est
   465.
-- `smtpuser` et `smtppwd` définissent le login et le mot de passe nécessaire
-  pour se connecter au serveur SMTP.
+- `smtpauth` définit la méthode d'authentification à utiliser pour ce serveur.
+Les deux méthodes disponibles sont `login` et `oauth`.
+- `smtpuser` définit le login nécessaire pour se connecter au serveur SMTP. Il
+est utilisé aussi bien pour la méthode `login` que pour la méthode `oauth`.
+- `smtppwd` définit le mot de passe nécessaire pour se connecter avec la
+méthode `login`.
+- `smtpoauthtokencmd` définit la commande externe à exécuter pour récupérer un
+*access token* pour se connecter avec la méthode `XOAUTH2` au serveur SMTP.
+Cette commande est exécutée dans un shell et ne doit afficher que le token sur
+sa sortie standard.
+
+Si `smtpauth` est omit, il est deviné à partir de l'existence de `smtppwd` et
+`smtpoauthtokencmd`. Si rien n'est donné, aucune authentification n'est tenté.
 
 ## La section [Account.PEusername]
 Le `PEusername` dans le nom de la section est modifiable. C'est le nom qui doit

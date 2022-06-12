@@ -152,10 +152,13 @@ def main():
 
     smtphost = config["SMTP"]["smtphost"]
     smtpport = config["SMTP"].get("smtpport")
+    smtpauth = config["SMTP"].get("smtpauthmethod")
     smtpuser = config["SMTP"].get("smtpuser")
     smtppassword = config["SMTP"].get("smtppwd")
-    mailsender = mailer.Mailer(smtphost, smtpport, smtpuser, smtppassword)
+    smtpoauthcmd = config["SMTP"].get("smtpoauthtokencmd")
 
+    mailsender = mailer.Mailer(smtphost, smtpport, smtpauth,
+                               smtpuser, smtppassword, smtpoauthcmd)
 
     if peuser is None:
         section = next(s for s in config.sections() if s.startswith("Account."))
@@ -179,8 +182,6 @@ def main():
         msg = "Exception caught while trying to run the \"actualisation\".\n\n"
         msg += traceback.format_exc()
         mailsender.error(smtpuser, msg)
-
-
 
 
 

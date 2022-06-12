@@ -1,8 +1,10 @@
 [SMTP]
 smtphost = smtp.gmail.com
 #smtpport = 465
+smtpauth = oauth
 smtpuser = youraccount@gmail.com
-smtppwd = GMa1lP4s5W0rD
+#smtppwd = GMa1lP4s5W0rD
+smtpoauthtokencmd = ~/some/command/that/outputs/oauth/token
 
 [Account.PEusername]
 username = loginPE
