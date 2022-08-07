@@ -130,12 +130,13 @@ class PaulEmploiAuthedRequests(object):
         res.raise_for_status()
         return res
 
-    def getjson(self, url):
+    def getjson(self, url, add_headers={}):
         headers = {
             "Accept": "application/json, text/plain, */*",
             "pe-nom-application": "pn073-tdbcandidat",
             "Authorization": "Bearer " + self._access_token
         }
+        headers.update(add_headers)
 
         res = self.get(url, headers=headers)
         return res.json()
