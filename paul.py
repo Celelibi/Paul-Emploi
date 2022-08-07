@@ -291,7 +291,8 @@ class PaulEmploiAuthedRequests(object):
     @retrying.retry(stop_max_attempt_number=3, stop_max_delay=3600000, wait_exponential_multiplier=1000, wait_exponential_max=10000)
     def getNavigation(self):
         d = self._layout['rest']['ex017']
-        return self.getjson(d['uri'] + d['navigation'])
+        type_auth = self._peam['id']
+        return self.getjson(d['uri'] + d['navigation'], add_headers={'typeAuth': type_auth})
 
 
 
