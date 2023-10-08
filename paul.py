@@ -197,14 +197,17 @@ class PaulEmploiAuthedRequests(object):
 
     def _cookiedesc_tokenid(self, url):
         realm = self._realm_override(url)
+        realmpath = self._realm_path(realm)
         pathjson = self._pathjson(url)
 
-        path = pathjson + "/serverinfo/*"
-        params = {'realm': realm}
-        params = urllib.parse.urlencode(params, quote_via=urllib.parse.quote)
-        configurl = urllib.parse.urlunsplit((url.scheme, url.netloc, path, params, None))
+        path = pathjson + realmpath + "/serverinfo/*"
+        configurl = urllib.parse.urlunsplit((url.scheme, url.netloc, path, None, None))
 
-        res = self.get(configurl)
+        headers = {
+            "Accept-API-Version": "protocol=1.0,resource=1.1",
+        }
+
+        res = self.get(configurl, headers=headers)
         srvinfo = res.json()
 
         cookiedesc = {
@@ -229,7 +232,7 @@ class PaulEmploiAuthedRequests(object):
         authurl = urllib.parse.urlunsplit((url.scheme, url.netloc, path, params, None))
 
         headers = {
-            "Accept-API-Version": "protocol=1.0,resource=2.0",
+            "Accept-API-Version": "protocol=1.0,resource=2.1",
             "X-Password": "anonymous",
             "X-Username": "anonymous",
             "X-NoSession": "true",
