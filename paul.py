@@ -38,36 +38,6 @@ default_answers = {
 
 
 
-def extract_json(script, tagre):
-    pos = tagre.search(script).end()
-    script_quoted = re.sub(r'(?<=[{,])\s*([a-zA-Z0-9_]+)\s*(?=:)', '"\\1"', script[pos:])
-    decoder = json.JSONDecoder()
-    obj, _ = decoder.raw_decode(script_quoted)
-    return obj
-
-
-
-def extract_peam(script):
-    peamre = re.compile(r'peam\s*:\s*')
-    peams = extract_json(script, peamre)
-    if len(peams) > 1:
-        raise RuntimeError("More than one PEAM block")
-    return peams[0]
-
-
-
-def extract_rest(script):
-    restre = re.compile(r'rest\s*:\s*')
-    return extract_json(script, restre)
-
-
-
-def extract_layout(script):
-    layoutre = re.compile(r'layout\s*:\s*')
-    return extract_json(script, layoutre)
-
-
-
 def randomizeString(n):
     charset = "0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-"
     return "".join(random.choices(charset, k=n))
@@ -145,25 +115,17 @@ class PaulEmploiAuthedRequests(object):
 
     def _authorizeUrl(self):
         initialurl = "https://candidat.pole-emploi.fr/espacepersonnel/"
-        res = self.get(initialurl)
+        configurl = urllib.parse.urljoin(initialurl, "configuration.json")
+        config = self.get(configurl).json()
 
-        doc = lxml.html.fromstring(res.text, base_url=res.url)
-        doc.make_links_absolute()
+        if len(config["peam"]) > 1:
+            raise RuntimeError("More than one PEAM block")
+        if len(config["peam"]) == 0:
+            raise RuntimeError("No PEAM block found")
 
-        # Find and load main.*.js script to extract some informations from it
-        mainscripts = doc.cssselect('script[src*="/main."][src$=".js"]')
-        if len(mainscripts) == 0:
-            raise ValueError("No main.js script found\n" + res.text)
-        if len(mainscripts) > 1:
-            raise ValueError("Several main.js scripts were found")
-
-        mainscript = mainscripts[0].get('src')
-        res = self.get(mainscript)
-
-        mainjs = res.text
-        self._peam = extract_peam(mainjs)
-        self._rest = extract_rest(mainjs)
-        self._layout = extract_layout(mainjs)
+        self._peam = config["peam"][0]
+        self._rest = config["rest"]
+        self._layout = config["layout"]
         return buildAuthorizeUrl(self._peam)
 
 
