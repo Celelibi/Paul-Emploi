@@ -58,7 +58,7 @@ def main():
     parser.add_argument("--since", metavar="JJ/MM/AAAA", help="Envoie uniquement les messages reçus après cette date")
     parser.add_argument("--no-send", "-n", action='store_true', help="N'envoie pas les mails, affiche le résumé")
     parser.add_argument("--no-error-mail", action="store_true", help="N'envoie pas de mail pour les erreurs")
-    parser.add_argument("--verbose", "-v", action="count", help="Augmente le niveau de verbosité")
+    parser.add_argument("--verbose", "-v", action="count", default=0, help="Augmente le niveau de verbosité")
 
     args = parser.parse_args()
 
@@ -70,10 +70,9 @@ def main():
     nosend = args.no_send
     errormail = not args.no_error_mail
 
-    if verbose is not None:
-        loglevels = ["WARNING", "INFO", "DEBUG", "NOTSET"]
-        verbose = min(len(loglevels) - 1, verbose)
-        logging.getLogger().setLevel(loglevels[verbose])
+    loglevels = ["WARNING", "INFO", "DEBUG", "NOTSET"]
+    verbose = min(len(loglevels) - 1, verbose)
+    logging.getLogger().setLevel(loglevels[verbose])
 
     logging.info("Reading config file %s", configpath)
     config = configparser.ConfigParser()
