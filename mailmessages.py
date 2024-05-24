@@ -4,11 +4,18 @@ import argparse
 import configparser
 import locale
 import logging
+import logging.config
+import os
+import sys
 import traceback
 import unicodedata
 
 import mailer
 import paul
+
+
+
+SELFPATH = os.path.dirname(os.path.realpath(sys.argv[0]))
 
 
 
@@ -42,8 +49,7 @@ def dostuff(mailsender, dest, user, password, allmessages, since, nosend):
 
 def main():
     locale.setlocale(locale.LC_ALL, '')
-    logfmt = "%(asctime)s %(levelname)s: %(message)s"
-    logging.basicConfig(format=logfmt, level=logging.WARNING)
+    logging.config.fileConfig(os.path.join(SELFPATH, "logconf.ini"), disable_existing_loggers=False)
 
     parser = argparse.ArgumentParser(description="Bot d'actualisation pour Paul Emploi")
     parser.add_argument("cfgfile", metavar="configfile", help="Fichier de configuration")
