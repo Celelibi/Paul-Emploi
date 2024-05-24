@@ -158,8 +158,9 @@ def main():
 
     loglevels = ["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG", "NOTSET"]
     ch = logging_getHandler("consoleHandler")
-    verbose += 2
-    verbose = min(len(loglevels) - 1, max(0, verbose))
+    curlevel = logging.getLevelName(ch.level)
+    curlevel = loglevels.index(curlevel)
+    verbose = min(len(loglevels) - 1, max(0, curlevel + verbose))
     ch.setLevel(loglevels[verbose])
 
     logging.info("Reading config file %s", configpath)
