@@ -149,7 +149,7 @@ def main():
 
     if verbose is not None:
         loglevels = ["WARNING", "INFO", "DEBUG", "NOTSET"]
-        verbose = min(len(loglevels), verbose) - 1
+        verbose = min(len(loglevels) - 1, verbose)
         logging.getLogger().setLevel(loglevels[verbose])
 
     logging.info("Reading config file %s", configpath)
