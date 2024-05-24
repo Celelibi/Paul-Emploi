@@ -80,5 +80,5 @@ class Mailer(object):
 
 
 
-    def error(self, to, msg):
-        self.message(to, "Error", msg)
+    def error(self, to, *args, **kwargs):
+        self.message(to, "Error", *args, **kwargs)
