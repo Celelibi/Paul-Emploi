@@ -146,18 +146,20 @@ def main():
     parser.add_argument("--work", "-w", metavar="worklog", help="Fichier des heures travaillées")
     parser.add_argument("--no-error-mail", action="store_true", help="N'envoie pas de mail pour les erreurs")
     parser.add_argument("--verbose", "-v", action="count", default=0, help="Augmente le niveau de verbosité")
+    parser.add_argument("--quiet", "-q", action="count", default=0, help="Diminue le niveau de verbosité")
 
     args = parser.parse_args()
 
     configpath = args.cfgfile
     peuser = args.user
-    verbose = args.verbose
+    verbose = args.verbose - args.quiet
     workfile = args.work
     errormail = not args.no_error_mail
 
-    loglevels = ["WARNING", "INFO", "DEBUG", "NOTSET"]
+    loglevels = ["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG", "NOTSET"]
     ch = logging_getHandler("consoleHandler")
-    verbose = min(len(loglevels) - 1, verbose)
+    verbose += 2
+    verbose = min(len(loglevels) - 1, max(0, verbose))
     ch.setLevel(loglevels[verbose])
 
     logging.info("Reading config file %s", configpath)
