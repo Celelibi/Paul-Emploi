@@ -22,6 +22,14 @@ SELFPATH = os.path.dirname(os.path.realpath(sys.argv[0]))
 
 
 
+def logging_getHandler(name):
+    for h in logging.getLogger().handlers:
+        if h.name == name:
+            return h
+    return None
+
+
+
 def make_answers(datestart, workfile=None):
     answers = paul.default_answers.copy()
     if workfile is None:
@@ -148,8 +156,9 @@ def main():
     errormail = not args.no_error_mail
 
     loglevels = ["WARNING", "INFO", "DEBUG", "NOTSET"]
+    ch = logging_getHandler("consoleHandler")
     verbose = min(len(loglevels) - 1, verbose)
-    logging.getLogger().setLevel(loglevels[verbose])
+    ch.setLevel(loglevels[verbose])
 
     logging.info("Reading config file %s", configpath)
     config = configparser.ConfigParser()
