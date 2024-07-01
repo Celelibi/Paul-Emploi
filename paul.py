@@ -234,18 +234,17 @@ class PaulEmploiAuthedRequests(object):
             "X-Password": "anonymous",
             "X-Username": "anonymous",
             "X-NoSession": "true",
-            "Content-Type": "application/json",
         }
         res = self.post(authurl, headers=headers)
         form = res.json()
 
         form['callbacks'][0]['input'][0]['value'] = user
-        res = self.post(authurl, data=json.dumps(form), headers=headers)
+        res = self.post(authurl, json=form, headers=headers)
         form = res.json()
 
         form['callbacks'][1]['input'][0]['value'] = password
 
-        res = self.post(authurl, data=json.dumps(form), headers=headers)
+        res = self.post(authurl, json=form, headers=headers)
         return res.json()
 
 
