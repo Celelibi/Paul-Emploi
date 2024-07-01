@@ -580,7 +580,7 @@ class PaulEmploi(object):
 
     @retrying.retry(stop_max_attempt_number=3, stop_max_delay=3600000, wait_exponential_multiplier=1000, wait_exponential_max=10000)
     def newmails(self, allmessages=False, since=None):
-        url = self.navigation_service_url("dossier-de/echanges-avec-pe/courriers-recus-pe")
+        url = self.navigation_service_url("contacts-documents/documents/courriers-recus-pe")
         res = self._req.get(url)
         doc = lxml.html.fromstring(res.content, base_url=res.url)
         doc.make_links_absolute()
