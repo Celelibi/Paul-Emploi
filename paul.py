@@ -245,6 +245,12 @@ class PaulEmploiAuthedRequests(object):
         form['callbacks'][1]['input'][0]['value'] = password
 
         res = self.post(authurl, json=form, headers=headers)
+        form = res.json()
+
+        form['callbacks'][0]['output'].append({"name": "onlyCallback", "value": True})
+        form['callbacks'][0]['input'][0]['value'] = "{}"
+
+        res = self.post(authurl, json=form, headers=headers)
         return res.json()
 
 
