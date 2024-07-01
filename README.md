@@ -1,7 +1,7 @@
-# Programmes Pôle Emploi
+# Programmes France Travail
 
-Ce repository contient plusieurs programmes pour interagir avec le site de Pôle
-Emploi.
+Ce repository contient plusieurs programmes pour interagir avec le site de
+France Travail (ex Pôle Emploi).
 - Un bot d'actualisation de situation
 - Un pour récupérer les courriers web et les envoyer par mail.
 
@@ -9,9 +9,9 @@ Ils partagent le même fichier de configuration.
 
 ## Bot de rapatriement courriers
 
-Ce programme va chercher les courriers disponibles sur le site de Pôle Emploi et
-les envoi par mail à l'adresse configurée. Par défaut, il n'ira chercher que les
-messages non-lus de ces 6 derniers mois.
+Ce programme va chercher les courriers disponibles sur le site de France
+Travail et les envoi par mail à l'adresse configurée. Par défaut, il n'ira
+chercher que les messages non-lus de ces 6 derniers mois.
 
 ### Utilisation
 
@@ -25,8 +25,8 @@ Le premier argument est le chemin vers le fichier de configuration dont la
 syntaxe est détaillée plus loin.
 
 `cfgUser` est le nom du compte utilisateur défini dans la configuration pour
-qui il faut récupérer les courriers sur le site Pôle Emploi. S'il est omit, le
-premier compte définit dans le fichier de configuration sera utilisé.
+qui il faut récupérer les courriers sur le site France Travail. S'il est omit,
+le premier compte définit dans le fichier de configuration sera utilisé.
 
 L'option `--all` enverra aussi bien les messages déjà lus que les messages
 non-lus. Cette option peut être utilisée la première fois, pour récupérer tous
@@ -44,13 +44,13 @@ Note: Les messages sont automatiquement marqués comme lus une fois qu'ils ont
 marque donc pas les messages comme lus.
 
 La commande suivante peut être utilisée pour afficher la liste de tous les
-courriers encore stockés chez Pôle Emploi.
+courriers encore stockés chez France Travail.
 
     ./mailmessages.py --since 01/01/1970 --all --no-send paulemploi.ini
 
 Enlever l'option `--no-send` enverra les messages par mail.
 
-## Bot d'actualisation de situation Pôle Emploi
+## Bot d'actualisation de situation France Travail
 
 Ce programme remplit automatiquement le formulaire d'actualisation sur le site
 de Paul. Par défaut, il remplit le formulaire en répondant *"Oui"* à
@@ -63,6 +63,9 @@ l'actualisation. En cas d'échec, il envoie un rapport d'erreur au compte mail
 utilisé pour l'envoi des mails. L'envoie de mails a été testé uniquement avec
 un compte gmail.
 
+Ce programme n'a pas été mis à jour depuis que son développeur n'est plus au
+chômage. Les contributions sont bienvenues.
+
 ### Utilisation
 
 L'utilisation prévue est de lancer le bot tous les mois avec une entrée cron
@@ -74,7 +77,7 @@ Le premier argument est le chemin vers le fichier de configuration dont la
 syntaxe est détaillée plus loin.
 
 `cfgUser` est le nom du compte utilisateur défini dans la configuration pour
-qui il faut effectuer l'actualisation sur le site Pôle Emploi. S'il est omit,
+qui il faut effectuer l'actualisation sur le site France Travail. S'il est omit,
 le premier compte définit dans le fichier de configuration sera utilisé.
 
 L'option `--work` peut être utilisée pour donner le chemin d'un fichier
@@ -129,7 +132,8 @@ Le `PEusername` dans le nom de la section est modifiable. C'est le nom qui doit
 être donné sur la ligne de commande.
 
 - `username` et `password` définissent le nom d'utilisateur et le mot de passe
-  de connexion sur le site de Pôle Emploi tel que mis en place depuis l'été 2019.
+de connexion sur le site de France Travail tel que mis en place depuis l'été
+2019.
 - `email` définit l'adresse mail où envoyer le résumé si l'actualisation
   réussit.
 

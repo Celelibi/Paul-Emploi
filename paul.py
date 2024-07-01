@@ -114,7 +114,7 @@ class PaulEmploiAuthedRequests(object):
 
 
     def _authorizeUrl(self):
-        initialurl = "https://candidat.pole-emploi.fr/espacepersonnel/"
+        initialurl = "https://candidat.francetravail.fr/espacepersonnel/"
         configurl = urllib.parse.urljoin(initialurl, "configuration.json")
         config = self.get(configurl).json()
 
