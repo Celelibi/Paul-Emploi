@@ -302,6 +302,13 @@ class PaulEmploiAuthedRequests(object):
 
 
 
+    def count_unread(self):
+        d = self._rest["ex009"]
+        res = self.getjson(d["uri"] + d["courriersNombre"])
+        return res["total"]
+
+
+
 class PaulEmploi(object):
     def __init__(self, user, password):
         self._req = PaulEmploiAuthedRequests(user, password)
@@ -584,6 +591,13 @@ class PaulEmploi(object):
         res = self._req.get(url)
         doc = lxml.html.fromstring(res.content, base_url=res.url)
         doc.make_links_absolute()
+
+        # New UI currently unsupported
+        # Need some account with mails in the new UI to make it work
+        if len(doc.forms) == 0:
+            if self._req.count_unread() == 0:
+                return []
+            raise RuntimeError("New UI unsupported")
 
         # Just an annoying auto-validated form
         form = doc.forms[0]
